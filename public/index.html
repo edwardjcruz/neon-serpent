@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Serpent — Snake, reborn</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="game-panel">
+      <header>
+        <div class="brand"><span class="brand-mark">S</span><div><p>ARCADE PROTOCOL</p><h1>NEON <em>SERPENT</em></h1></div></div>
+        <button class="sound" id="soundButton" aria-label="Toggle sound">♪</button>
+      </header>
+      <div class="stats"><div><span>SCORE</span><strong id="score">000</strong></div><div><span>PERSONAL BEST</span><strong id="best">000</strong></div><div><span>STREAK</span><strong id="streak">×1</strong></div></div>
+      <div class="board-wrap"><canvas id="game" width="600" height="600" aria-label="Snake game"></canvas><div class="scanlines"></div><div class="overlay" id="overlay"><p class="eyebrow">THE GRID IS WAITING</p><h2 id="overlayTitle">READY, PILOT?</h2><p id="overlayText">Collect energy cores. Pick up a flux orb for a temporary score multiplier.</p><button id="startButton">START RUN <span>→</span></button><p class="controls">ARROW KEYS / WASD TO STEER</p></div></div>
+      <div class="legend"><span><i class="dot food-dot"></i> ENERGY CORE <b>+10</b></span><span><i class="dot flux-dot"></i> FLUX ORB <b>×2 / 6 SEC</b></span><span>SPACE TO PAUSE</span></div>
+    </section>
+    <aside class="leaderboard">
+      <div class="board-heading"><div><p>NETWORK UPLINK</p><h2>GLOBAL<br><em>TOP PILOTS</em></h2></div><span class="live"><i></i> LIVE</span></div>
+      <ol id="leaderList"><li class="loading">Synchronizing leaderboard…</li></ol>
+      <div class="submit-card" id="submitCard" hidden><p>NEW HIGH SCORE?</p><div><input id="nameInput" maxlength="16" placeholder="YOUR CALLSIGN" /><button id="submitScore">UPLOAD</button></div><small id="submitMessage"></small></div>
+      <footer><span>BEST RUNS SYNCED WORLDWIDE</span><button id="refreshButton">↻ REFRESH</button></footer>
+    </aside>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
