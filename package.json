@@ -2,8 +2,17 @@
   "name": "neon-serpent",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "build": "rm -rf dist && mkdir -p dist && cp index.html styles.css game.js leaderboard.js amplify_outputs.json dist/ && esbuild leaderboard.js --bundle --format=esm --target=es2022 --outfile=dist/leaderboard.js"
+  },
+  "dependencies": {
+    "aws-amplify": "latest"
+  },
+  "devDependencies": {
+    "@aws-amplify/backend": "latest",
+    "@aws-amplify/backend-cli": "latest",
+    "esbuild": "latest",
+    "typescript": "latest"
   }
 }
