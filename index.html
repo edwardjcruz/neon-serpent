@@ -25,7 +25,7 @@
   <!-- End Google Tag Manager (noscript) -->
   <nav class="arcade-nav" aria-label="Arcade games">
     <a class="arcade-brand" href="#arcade">NEON SERPENT</a>
-    <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="mines">MINES</button><button class="arcade-tab" data-game="breakout">BREAKOUT</button></div>
+    <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="mines">MINES</button><button class="arcade-tab" data-game="breakout">BREAKOUT</button><button class="arcade-tab" data-game="shooter">SHOOTER</button></div>
   </nav>
   <main id="arcade">
     <section class="game" id="snake-game">
@@ -50,6 +50,7 @@
       <p class="legend breakout-legend"><span>▰ IMPACT BRICK <b>+10</b></span><span>● POWER CORE <b>WIDEN PADDLE</b></span><span>CLEAR A WAVE TO ACCELERATE</span></p>
       <div class="touch-controls breakout-controls" aria-label="Breakout controls"><button data-breakout-direction="left" aria-label="Move paddle left">←</button><button id="breakout-launch" aria-label="Launch ball">●</button><button data-breakout-direction="right" aria-label="Move paddle right">→</button></div>
     </section>
+    <section class="shooter-game" id="shooter-game" hidden><header><div class="logo"><b>◉</b><span><small>CLUSTER PROTOCOL</small><h1>BUBBLE <i>SHOOTER</i></h1></span></div></header><div class="shooter-arena"><canvas id="shooter-canvas" width="600" height="600" aria-label="Bubble Shooter preview"></canvas><div class="overlay" id="shooter-overlay"><small>LOCK ONTO A CLUSTER</small><h2 id="shooter-title">READY, PILOT?</h2><p id="shooter-message">Move your pointer to aim. The guide previews wall bounces before you fire.</p><button id="shooter-start">START SHOOTING <b>→</b></button><small>DRAG OR CLICK TO AIM</small></div></div><p class="legend"><span>◉ MATCH 3+ <b>POP</b></span><span>GUIDE <b>SHOWS BOUNCES</b></span><span>RELEASE TO FIRE</span></p></section>
     <aside>
       <section class="leaderboard-panel" id="snake-leaderboard">
         <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>TOP PILOTS</i></h2></span><small class="live">● LIVE</small></div>
@@ -74,6 +75,7 @@
   <script src="game.js"></script>
   <script src="minesweeper.js"></script>
   <script src="breakout.js"></script>
+  <script src="bubble-shooter.js"></script>
   <script type="module" src="leaderboard.js"></script>
 </body>
 </html>

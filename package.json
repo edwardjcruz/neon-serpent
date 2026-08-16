@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && cp index.html styles.css arcade.css game.js minesweeper.js breakout.js leaderboard.js robots.txt dist/ && if [ -f amplify_outputs.json ]; then cp amplify_outputs.json dist/; fi && ./node_modules/esbuild/bin/esbuild leaderboard.js --bundle --format=esm --target=es2022 --outfile=dist/leaderboard.js"
+    "build": "rm -rf dist && mkdir -p dist && cp index.html styles.css arcade.css game.js minesweeper.js breakout.js bubble-shooter.js leaderboard.js robots.txt dist/ && if [ -f amplify_outputs.json ]; then cp amplify_outputs.json dist/; fi && ./node_modules/esbuild/bin/esbuild leaderboard.js --bundle --format=esm --target=es2022 --outfile=dist/leaderboard.js"
   },
   "dependencies": {
     "aws-amplify": "latest"
