@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Play Neon Serpent: a neon arcade with Snake, Minesweeper, mobile controls, and live global leaderboards.">
+  <meta name="description" content="Play Neon Serpent: a neon arcade with Snake, Minesweeper, Breakout, mobile controls, and live global leaderboards.">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#142226">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Neon Serpent — Play Arcade Games Online">
-  <meta property="og:description" content="Play Neon Serpent Snake and Neon Mines in one sharp arcade hub.">
+  <meta property="og:description" content="Play Neon Serpent, Neon Mines, and Neon Breakout in one sharp arcade hub.">
   <meta name="twitter:card" content="summary">
   <title>Neon Serpent — Play Arcade Games Online</title>
   <link rel="stylesheet" href="styles.css">
@@ -25,7 +25,7 @@
   <!-- End Google Tag Manager (noscript) -->
   <nav class="arcade-nav" aria-label="Arcade games">
     <a class="arcade-brand" href="#arcade">NEON SERPENT</a>
-    <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="mines">MINESWEEPER</button></div>
+    <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="mines">MINES</button><button class="arcade-tab" data-game="breakout">BREAKOUT</button></div>
   </nav>
   <main id="arcade">
     <section class="game" id="snake-game">
@@ -43,6 +43,13 @@
       <div id="mine-board" class="mine-board" role="grid" aria-label="Minesweeper board"></div>
       <p class="mine-help">TAP A TILE TO REVEAL IT. FLAG MODE MARKS SUSPECTED MINES.</p>
     </section>
+    <section class="breakout-game" id="breakout-game" hidden>
+      <header><div class="logo"><b>▰</b><span><small>IMPACT PROTOCOL</small><h1>NEON <i>BREAKOUT</i></h1></span></div><button id="breakout-pause" aria-label="Pause Breakout">Ⅱ</button></header>
+      <div class="stats breakout-stats"><div>SCORE<strong id="breakout-score">000</strong></div><div>PERSONAL BEST<strong id="breakout-best">000</strong></div><div>LIVES<strong id="breakout-lives">03</strong></div><div class="level-stat">WAVE<strong id="breakout-wave">01</strong></div></div>
+      <div class="breakout-arena"><canvas id="breakout-canvas" width="600" height="600" aria-label="Neon Breakout game"></canvas><div class="overlay" id="breakout-overlay"><small>BRICKS ON THE GRID</small><h2 id="breakout-title">READY, PILOT?</h2><p id="breakout-message">Break the formation, protect your last ball, and climb the global impact board.</p><button id="breakout-start">LAUNCH RUN <b>→</b></button><small>DRAG, SWIPE, OR USE ← →</small></div></div>
+      <p class="legend breakout-legend"><span>▰ IMPACT BRICK <b>+10</b></span><span>● POWER CORE <b>WIDEN PADDLE</b></span><span>CLEAR A WAVE TO ACCELERATE</span></p>
+      <div class="touch-controls breakout-controls" aria-label="Breakout controls"><button data-breakout-direction="left" aria-label="Move paddle left">←</button><button id="breakout-launch" aria-label="Launch ball">●</button><button data-breakout-direction="right" aria-label="Move paddle right">→</button></div>
+    </section>
     <aside>
       <section class="leaderboard-panel" id="snake-leaderboard">
         <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>TOP PILOTS</i></h2></span><small class="live">● LIVE</small></div>
@@ -56,10 +63,17 @@
         <div class="submit" id="mine-submit" hidden><small>NEW CLEAR TIME?</small><div><input id="mine-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="mine-upload">UPLOAD</button></div><small id="mine-notice"></small></div>
         <footer>FASTEST TIMES SYNCED LIVE <button id="mine-refresh">↻ REFRESH</button></footer>
       </section>
+      <section class="leaderboard-panel" id="breakout-leaderboard" aria-label="Breakout leaderboard" hidden>
+        <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>IMPACT RUNS</i></h2></span><small class="live">● LIVE</small></div>
+        <ol id="breakout-leaders"></ol>
+        <div class="submit" id="breakout-submit" hidden><small>NEW HIGH SCORE?</small><div><input id="breakout-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="breakout-upload">UPLOAD</button></div><small id="breakout-notice"></small></div>
+        <footer>GLOBAL SCORES SYNCED LIVE <button id="breakout-refresh">↻ REFRESH</button></footer>
+      </section>
     </aside>
   </main>
   <script src="game.js"></script>
   <script src="minesweeper.js"></script>
+  <script src="breakout.js"></script>
   <script type="module" src="leaderboard.js"></script>
 </body>
 </html>

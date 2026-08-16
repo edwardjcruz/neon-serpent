@@ -122,11 +122,14 @@
   }
 
   document.querySelectorAll('.arcade-tab').forEach((button) => button.addEventListener('click', () => {
+    if (!['snake', 'mines'].includes(button.dataset.game)) return;
     const mines = button.dataset.game === 'mines';
     el('#snake-game').hidden = mines;
     el('#minesweeper-game').hidden = !mines;
+    el('#breakout-game').hidden = true;
     el('#snake-leaderboard').hidden = mines;
     el('#mine-leaderboard').hidden = !mines;
+    el('#breakout-leaderboard').hidden = true;
     el('#arcade').classList.toggle('mine-mode', mines);
     document.querySelectorAll('.arcade-tab').forEach((tab) => tab.classList.toggle('active', tab === button));
   }));
