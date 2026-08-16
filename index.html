@@ -71,6 +71,11 @@
         <div class="submit" id="breakout-submit" hidden><small>NEW HIGH SCORE?</small><div><input id="breakout-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="breakout-upload">UPLOAD</button></div><small id="breakout-notice"></small></div>
         <footer>GLOBAL SCORES SYNCED LIVE <button id="breakout-refresh">↻ REFRESH</button></footer>
       </section>
+      <section class="leaderboard-panel" id="shooter-leaderboard" aria-label="Bubble Shooter leaderboard" hidden>
+        <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>CLUSTER ACES</i></h2></span><small class="live">● LIVE</small></div>
+        <ol id="shooter-leaders"><li class="empty">SYNCING CLUSTER RUNS…</li></ol>
+        <footer>GLOBAL SCORES SYNCED LIVE</footer>
+      </section>
     </aside>
   </main>
   <script src="game.js"></script>

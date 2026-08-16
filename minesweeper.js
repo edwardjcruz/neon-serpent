@@ -130,6 +130,7 @@
     el('#snake-leaderboard').hidden = mines;
     el('#mine-leaderboard').hidden = !mines;
     el('#breakout-leaderboard').hidden = true;
+    el('#shooter-leaderboard').hidden = true;
     el('#arcade').classList.toggle('mine-mode', mines);
     document.querySelectorAll('.arcade-tab').forEach((tab) => tab.classList.toggle('active', tab === button));
   }));

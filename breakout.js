@@ -98,7 +98,7 @@
     const breakout = button.dataset.game === 'breakout';
     if (!breakout) return;
     el('#snake-game').hidden = true; el('#minesweeper-game').hidden = true; el('#breakout-game').hidden = false;
-    el('#snake-leaderboard').hidden = true; el('#mine-leaderboard').hidden = true; el('#breakout-leaderboard').hidden = false;
+    el('#snake-leaderboard').hidden = true; el('#mine-leaderboard').hidden = true; el('#breakout-leaderboard').hidden = false; el('#shooter-leaderboard').hidden = true;
     el('#arcade').classList.remove('mine-mode');
     document.querySelectorAll('.arcade-tab').forEach((tab) => tab.classList.toggle('active', tab === button));
     showLeaderboard();
