@@ -125,6 +125,8 @@
     const mines = button.dataset.game === 'mines';
     el('#snake-game').hidden = mines;
     el('#minesweeper-game').hidden = !mines;
+    el('#snake-leaderboard').hidden = mines;
+    el('#mine-leaderboard').hidden = !mines;
     el('#arcade').classList.toggle('mine-mode', mines);
     document.querySelectorAll('.arcade-tab').forEach((tab) => tab.classList.toggle('active', tab === button));
   }));

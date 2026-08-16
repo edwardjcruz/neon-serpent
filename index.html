@@ -42,19 +42,20 @@
       <div class="mine-stats"><span>MINES <b id="mine-count">10</b></span><span>TIME <b id="mine-time">00:00</b></span><span id="mine-message">CLEAR THE GRID.</span><button id="flag-mode" aria-pressed="false">⚑ FLAG MODE</button></div>
       <div id="mine-board" class="mine-board" role="grid" aria-label="Minesweeper board"></div>
       <p class="mine-help">TAP A TILE TO REVEAL IT. FLAG MODE MARKS SUSPECTED MINES.</p>
-      <section class="mine-leaderboard" aria-label="Minesweeper leaderboard">
-        <div><small>NETWORK UPLINK</small><h2>FASTEST <i>GRID CLEARS</i></h2></div>
-        <small id="mine-board-label">EASY MODE</small>
-        <ol id="mine-leaders"></ol>
-        <div class="mine-submit" id="mine-submit" hidden><small>NEW CLEAR TIME?</small><div><input id="mine-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="mine-upload">UPLOAD</button></div><small id="mine-notice"></small></div>
-        <button id="mine-refresh">↻ REFRESH TIMES</button>
-      </section>
     </section>
     <aside>
-      <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>TOP PILOTS</i></h2></span><small class="live">● LIVE</small></div>
-      <ol id="leaders"></ol>
-      <div class="submit" id="submit" hidden><small>NEW HIGH SCORE?</small><div><input id="name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="upload">UPLOAD</button></div><small id="notice"></small></div>
-      <footer>GLOBAL SCORES SYNCED LIVE <button id="refresh">↻ REFRESH</button></footer>
+      <section class="leaderboard-panel" id="snake-leaderboard">
+        <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>TOP PILOTS</i></h2></span><small class="live">● LIVE</small></div>
+        <ol id="leaders"></ol>
+        <div class="submit" id="submit" hidden><small>NEW HIGH SCORE?</small><div><input id="name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="upload">UPLOAD</button></div><small id="notice"></small></div>
+        <footer>GLOBAL SCORES SYNCED LIVE <button id="refresh">↻ REFRESH</button></footer>
+      </section>
+      <section class="leaderboard-panel" id="mine-leaderboard" aria-label="Minesweeper leaderboard" hidden>
+        <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>FASTEST<br><i>GRID CLEARS</i></h2></span><small class="live" id="mine-board-label">EASY</small></div>
+        <ol id="mine-leaders"></ol>
+        <div class="submit" id="mine-submit" hidden><small>NEW CLEAR TIME?</small><div><input id="mine-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="mine-upload">UPLOAD</button></div><small id="mine-notice"></small></div>
+        <footer>FASTEST TIMES SYNCED LIVE <button id="mine-refresh">↻ REFRESH</button></footer>
+      </section>
     </aside>
   </main>
   <script src="game.js"></script>
