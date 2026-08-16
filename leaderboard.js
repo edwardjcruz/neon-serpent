@@ -1,7 +1,8 @@
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
 
-const BOARD = 'snake';
+// Preserve the original Snake board so existing global scores remain visible.
+const BOARD = 'global';
 
 function cleanCallsign(value) {
   return String(value).trim().replace(/[^a-zA-Z0-9 _-]/g, '').slice(0, 16);
