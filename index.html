@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Play free arcade games online at Neon Serpent: modern Snake, Minesweeper, Breakout, Bubble Shooter, and Flappy Serpent with mobile controls and global leaderboards.">
+  <meta name="description" content="Play seven free arcade games online at Neon Serpent: Snake, Flappy Serpent, Neon Stack, Neon Tower, Minesweeper, Breakout, and Bubble Shooter with mobile controls and global leaderboards.">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#142226">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Neon Serpent">
-  <meta property="og:title" content="Neon Serpent Arcade — Five Free Games Online">
-  <meta property="og:description" content="Play Snake, Minesweeper, Breakout, Bubble Shooter, and Flappy Serpent with mobile controls and global leaderboards.">
+  <meta property="og:title" content="Neon Serpent Arcade — Seven Free Games Online">
+  <meta property="og:description" content="Play Snake, Flappy Serpent, Neon Stack, Neon Tower, Minesweeper, Breakout, and Bubble Shooter with mobile controls and global leaderboards.">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Neon Serpent Arcade — Five Free Games Online">
-  <meta name="twitter:description" content="Five fast neon arcade games with mobile controls, personal bests, and global leaderboards.">
+  <meta name="twitter:title" content="Neon Serpent Arcade — Seven Free Games Online">
+  <meta name="twitter:description" content="Seven fast neon arcade games with mobile controls, personal bests, and global leaderboards.">
   <title>Neon Serpent Arcade | Free Snake, Minesweeper & More</title>
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Neon Serpent","description":"A free browser arcade with five neon games and global leaderboards."},{"@type":"ItemList","name":"Neon Serpent arcade games","numberOfItems":5,"itemListElement":[{"@type":"ListItem","position":1,"item":{"@type":"VideoGame","name":"Neon Serpent","genre":"Arcade","gamePlatform":"Web browser","description":"A modern online Snake game with score multipliers and increasing speed."}},{"@type":"ListItem","position":2,"item":{"@type":"VideoGame","name":"Neon Mines","genre":"Puzzle","gamePlatform":"Web browser","description":"A mobile-friendly Minesweeper game with three difficulty levels and timed clears."}},{"@type":"ListItem","position":3,"item":{"@type":"VideoGame","name":"Neon Breakout","genre":"Arcade","gamePlatform":"Web browser","description":"A neon brick-breaking game with waves, power cores, and high scores."}},{"@type":"ListItem","position":4,"item":{"@type":"VideoGame","name":"Bubble Shooter","genre":"Puzzle","gamePlatform":"Web browser","description":"Aim and match colorful bubbles using a trajectory guide and special bubbles."}},{"@type":"ListItem","position":5,"item":{"@type":"VideoGame","name":"Flappy Serpent","genre":"Arcade","gamePlatform":"Web browser","description":"A one-tap flying game with neon gates and increasing speed."}}]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Neon Serpent","description":"A free browser arcade with seven neon games and global leaderboards."},{"@type":"ItemList","name":"Neon Serpent arcade games","numberOfItems":7,"itemListElement":[{"@type":"ListItem","position":1,"item":{"@type":"VideoGame","name":"Neon Serpent","genre":"Arcade","gamePlatform":"Web browser","description":"A modern online Snake game with score multipliers and increasing speed."}},{"@type":"ListItem","position":2,"item":{"@type":"VideoGame","name":"Flappy Serpent","genre":"Arcade","gamePlatform":"Web browser","description":"A one-tap flying game with neon gates and increasing speed."}},{"@type":"ListItem","position":3,"item":{"@type":"VideoGame","name":"Neon Stack","genre":"Puzzle","gamePlatform":"Web browser","description":"A falling-block puzzle game with ghost-piece guidance, line clears, and escalating levels."}},{"@type":"ListItem","position":4,"item":{"@type":"VideoGame","name":"Neon Tower","genre":"Arcade","gamePlatform":"Web browser","description":"An endless one-tap arcade Stacker game with whole cubes, scrolling tower heights, and global high scores."}},{"@type":"ListItem","position":5,"item":{"@type":"VideoGame","name":"Neon Mines","genre":"Puzzle","gamePlatform":"Web browser","description":"A mobile-friendly Minesweeper game with three difficulty levels and timed clears."}},{"@type":"ListItem","position":6,"item":{"@type":"VideoGame","name":"Neon Breakout","genre":"Arcade","gamePlatform":"Web browser","description":"A neon brick-breaking game with waves, power cores, and high scores."}},{"@type":"ListItem","position":7,"item":{"@type":"VideoGame","name":"Bubble Shooter","genre":"Puzzle","gamePlatform":"Web browser","description":"Aim and match colorful bubbles using a trajectory guide and special bubbles."}}]}]}</script>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="arcade.css">
   <!-- Google Tag Manager -->
@@ -30,7 +30,7 @@
   <!-- End Google Tag Manager (noscript) -->
   <nav class="arcade-nav" aria-label="Arcade games">
     <a class="arcade-brand" href="#arcade">NEON SERPENT</a>
-    <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="flappy">FLAPPY</button><button class="arcade-tab" data-game="mines">MINES</button><button class="arcade-tab" data-game="breakout">BREAKOUT</button><button class="arcade-tab" data-game="shooter">SHOOTER</button></div>
+    <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="flappy">FLAPPY</button><button class="arcade-tab" data-game="stack">STACK</button><button class="arcade-tab" data-game="tower">TOWER</button><button class="arcade-tab" data-game="mines">MINES</button><button class="arcade-tab" data-game="breakout">BREAKOUT</button><button class="arcade-tab" data-game="shooter">SHOOTER</button></div>
   </nav>
   <main id="arcade">
     <section class="game" id="snake-game">
@@ -66,6 +66,22 @@
       <button class="flappy-boost" id="flappy-boost">BOOST ↑</button>
       <section class="seo-copy" aria-label="About Flappy Serpent"><h2>Play Flappy Serpent Online</h2><p>Tap, click, or press Space to guide the serpent through neon gates. Clear gates for points, adapt as the flight speeds up, and submit your best score to the global leaderboard.</p></section>
     </section>
+    <section class="stack-game" id="stack-game" hidden>
+      <header><div class="logo"><b>▦</b><span><small>ASSEMBLY PROTOCOL</small><h1>NEON <i>STACK</i></h1></span></div><button id="stack-pause" aria-label="Pause Neon Stack">Ⅱ</button></header>
+      <div class="stats"><div>SCORE<strong id="stack-score">000</strong></div><div>PERSONAL BEST<strong id="stack-best">000</strong></div><div>LINES<strong id="stack-lines">00</strong></div><div class="level-stat">LEVEL<strong id="stack-level">01</strong></div></div>
+      <div class="stack-arena"><canvas id="stack-canvas" width="400" height="600" aria-label="Neon Stack falling block puzzle game"></canvas><div class="overlay" id="stack-overlay"><small>ASSEMBLY GRID ONLINE</small><h2 id="stack-title">READY TO STACK?</h2><p id="stack-message">Complete horizontal lines before the blocks reach the top. The outlined ghost shows where each piece will land.</p><button id="stack-start">START STACKING <b>→</b></button><small>ARROWS TO MOVE · UP TO ROTATE · SPACE TO DROP</small></div></div>
+      <p class="legend"><span>COMPLETE LINE <b>+100</b></span><span>GHOST <b>LANDING GUIDE</b></span><span>LEVEL UP EVERY 10 LINES</span></p>
+      <div class="stack-controls" aria-label="Neon Stack controls"><button data-stack-action="left" aria-label="Move block left">←</button><button data-stack-action="rotate" aria-label="Rotate block">↻</button><button data-stack-action="right" aria-label="Move block right">→</button><button data-stack-action="down" aria-label="Move block down">↓</button><button data-stack-action="drop" aria-label="Drop block">DROP</button></div>
+      <section class="seo-copy" aria-label="About Neon Stack"><h2>Play a Block Stacking Game Online</h2><p>Move and rotate all seven classic block shapes, use the ghost-piece landing guide, clear multiple lines for score bonuses, and climb the global Neon Stack leaderboard.</p></section>
+    </section>
+    <section class="tower-game" id="tower-game" hidden>
+      <header><div class="logo"><b>▥</b><span><small>PRECISION PROTOCOL</small><h1>NEON <i>TOWER</i></h1></span></div></header>
+      <div class="stats"><div>SCORE<strong id="tower-score">000</strong></div><div>PERSONAL BEST<strong id="tower-best">000</strong></div><div>HEIGHT<strong id="tower-height">00</strong></div><div class="level-stat">PERFECTS<strong id="tower-perfects">00</strong></div></div>
+      <div class="tower-arena"><canvas id="tower-canvas" width="600" height="600" aria-label="Neon Tower arcade Stacker game"></canvas><div class="overlay" id="tower-overlay"><small>PRECISION GRID ONLINE</small><h2 id="tower-title">BUILD THE TOWER</h2><p id="tower-message">Start with four separate cubes. Stop each row over the tower—every unsupported cube disappears completely.</p><button id="tower-start">START BUILDING <b>→</b></button><small>TAP, CLICK, OR PRESS SPACE TO STACK</small></div></div>
+      <p class="legend"><span>PERFECT DROP <b>+250</b></span><span>ROW 12 <b>WIN, THEN CONTINUE</b></span><span>HIGH ROWS <b>SPEED + BURSTS</b></span></p>
+      <button class="tower-stack-button" id="tower-drop">STACK NOW</button>
+      <section class="seo-copy" aria-label="About Neon Tower"><h2>Play an Endless Arcade Stacker Game Online</h2><p>Time each moving row, preserve as many cubes as possible, reach row 12 to secure a win, then survive faster rows, speed bursts, and direction changes while chasing the global high score.</p></section>
+    </section>
     <aside>
       <section class="leaderboard-panel" id="snake-leaderboard">
         <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>TOP PILOTS</i></h2></span><small class="live">● LIVE</small></div>
@@ -91,6 +107,8 @@
         <footer>GLOBAL SCORES SYNCED LIVE</footer>
       </section>
       <section class="leaderboard-panel" id="flappy-leaderboard" aria-label="Flappy Serpent leaderboard" hidden><div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>SKY PILOTS</i></h2></span><small class="live">● LIVE</small></div><ol id="flappy-leaders"></ol><div class="submit" id="flappy-submit" hidden><small>NEW HIGH SCORE?</small><div><input id="flappy-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="flappy-upload">UPLOAD</button></div><small id="flappy-notice"></small></div><footer>GLOBAL SCORES SYNCED LIVE <button id="flappy-refresh">↻ REFRESH</button></footer></section>
+      <section class="leaderboard-panel" id="stack-leaderboard" aria-label="Neon Stack leaderboard" hidden><div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>STACK MASTERS</i></h2></span><small class="live">● LIVE</small></div><ol id="stack-leaders"></ol><div class="submit" id="stack-submit" hidden><small>NEW HIGH SCORE?</small><div><input id="stack-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="stack-upload">UPLOAD</button></div><small id="stack-notice"></small></div><footer>GLOBAL SCORES SYNCED LIVE <button id="stack-refresh">↻ REFRESH</button></footer></section>
+      <section class="leaderboard-panel" id="tower-leaderboard" aria-label="Neon Tower leaderboard" hidden><div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>TOWER ELITE</i></h2></span><small class="live">● LIVE</small></div><ol id="tower-leaders"></ol><div class="submit" id="tower-submit" hidden><small>POST YOUR SCORE</small><div><input id="tower-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="tower-upload">POST SCORE</button></div><small id="tower-notice"></small></div><footer>GLOBAL SCORES SYNCED LIVE <button id="tower-refresh">↻ REFRESH</button></footer></section>
     </aside>
   </main>
   <script src="game.js"></script>
@@ -98,6 +116,8 @@
   <script src="breakout.js"></script>
   <script src="bubble-shooter.js"></script>
   <script src="flappy-serpent.js"></script>
+  <script src="neon-stack.js"></script>
+  <script src="neon-tower.js"></script>
   <script src="analytics.js"></script>
   <script src="arcade-switcher.js"></script>
   <script type="module" src="leaderboard.js"></script>

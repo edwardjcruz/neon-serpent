@@ -11,8 +11,9 @@
   }
   function tone(frequency) { if (!sound) return; const audio = new (window.AudioContext || window.webkitAudioContext)(), oscillator = audio.createOscillator(), gain = audio.createGain(); oscillator.frequency.value = frequency; gain.gain.value = .025; oscillator.connect(gain).connect(audio.destination); oscillator.start(); gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + .07); oscillator.stop(audio.currentTime + .07); }
   function reset() { pilot = { x: 130, y: 300, velocity: 0, radius: 13 }; gates = []; score = 0; lastGate = 0; stats(); draw(); }
-  function addGate() { const gap = Math.max(160, 215 - Math.floor(score / 50) * 8), top = 65 + Math.random() * (600 - gap - 145); gates.push({ x: 640, top, gap, passed: false }); }
-  function boost() { if (!playing) return; pilot.velocity = -6.2; tone(440); }
+  function mobileMode() { return matchMedia('(max-width: 760px)').matches; }
+  function addGate() { const mobile = mobileMode(), gap = Math.max(mobile ? 195 : 160, (mobile ? 245 : 215) - Math.floor(score / 50) * (mobile ? 6 : 8)), top = 65 + Math.random() * (600 - gap - 145); gates.push({ x: 640, top, gap, passed: false }); }
+  function boost() { if (!playing) return; pilot.velocity = mobileMode() ? -5.7 : -6.2; tone(440); }
   function draw() {
     ctx.fillStyle = '#142226'; ctx.fillRect(0, 0, 600, 600);
     ctx.strokeStyle = '#ffffff0a'; for (let n = 0; n < 600; n += 24) { ctx.beginPath(); ctx.moveTo(n, 0); ctx.lineTo(n, 600); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, n); ctx.lineTo(600, n); ctx.stroke(); }
@@ -28,8 +29,9 @@
   }
   function tick(time) {
     if (!playing) return;
-    if (time - lastGate > Math.max(1250, 1750 - score * 2)) { addGate(); lastGate = time; }
-    const speed = 2.75 + Math.floor(score / 50) * .32; pilot.velocity += .3; pilot.y += pilot.velocity;
+    const mobile = mobileMode();
+    if (time - lastGate > Math.max(mobile ? 1450 : 1250, (mobile ? 2050 : 1750) - score * 2)) { addGate(); lastGate = time; }
+    const speed = (mobile ? 2.35 : 2.75) + Math.floor(score / 50) * (mobile ? .25 : .32); pilot.velocity += mobile ? .27 : .3; pilot.y += pilot.velocity;
     gates.forEach((gate) => { gate.x -= speed; if (!gate.passed && gate.x + 62 < pilot.x) { gate.passed = true; score += 10; if (score > best) localStorage.neonFlappyBest = best = score; stats(); tone(720); } });
     gates = gates.filter((gate) => gate.x > -70);
     const hit = pilot.y - pilot.radius < 0 || pilot.y + pilot.radius > 600 || gates.some((gate) => pilot.x + pilot.radius > gate.x && pilot.x - pilot.radius < gate.x + 62 && (pilot.y - pilot.radius < gate.top || pilot.y + pilot.radius > gate.top + gate.gap));
