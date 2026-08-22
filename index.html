@@ -3,14 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Play Neon Serpent: a neon arcade with Snake, Minesweeper, Breakout, mobile controls, and live global leaderboards.">
+  <meta name="description" content="Play free arcade games online at Neon Serpent: modern Snake, Minesweeper, Breakout, Bubble Shooter, and Flappy Serpent with mobile controls and global leaderboards.">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#142226">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Neon Serpent — Play Arcade Games Online">
-  <meta property="og:description" content="Play Neon Serpent, Neon Mines, and Neon Breakout in one sharp arcade hub.">
+  <meta property="og:site_name" content="Neon Serpent">
+  <meta property="og:title" content="Neon Serpent Arcade — Five Free Games Online">
+  <meta property="og:description" content="Play Snake, Minesweeper, Breakout, Bubble Shooter, and Flappy Serpent with mobile controls and global leaderboards.">
   <meta name="twitter:card" content="summary">
-  <title>Neon Serpent — Play Arcade Games Online</title>
+  <meta name="twitter:title" content="Neon Serpent Arcade — Five Free Games Online">
+  <meta name="twitter:description" content="Five fast neon arcade games with mobile controls, personal bests, and global leaderboards.">
+  <title>Neon Serpent Arcade | Free Snake, Minesweeper & More</title>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Neon Serpent","description":"A free browser arcade with five neon games and global leaderboards."},{"@type":"ItemList","name":"Neon Serpent arcade games","numberOfItems":5,"itemListElement":[{"@type":"ListItem","position":1,"item":{"@type":"VideoGame","name":"Neon Serpent","genre":"Arcade","gamePlatform":"Web browser","description":"A modern online Snake game with score multipliers and increasing speed."}},{"@type":"ListItem","position":2,"item":{"@type":"VideoGame","name":"Neon Mines","genre":"Puzzle","gamePlatform":"Web browser","description":"A mobile-friendly Minesweeper game with three difficulty levels and timed clears."}},{"@type":"ListItem","position":3,"item":{"@type":"VideoGame","name":"Neon Breakout","genre":"Arcade","gamePlatform":"Web browser","description":"A neon brick-breaking game with waves, power cores, and high scores."}},{"@type":"ListItem","position":4,"item":{"@type":"VideoGame","name":"Bubble Shooter","genre":"Puzzle","gamePlatform":"Web browser","description":"Aim and match colorful bubbles using a trajectory guide and special bubbles."}},{"@type":"ListItem","position":5,"item":{"@type":"VideoGame","name":"Flappy Serpent","genre":"Arcade","gamePlatform":"Web browser","description":"A one-tap flying game with neon gates and increasing speed."}}]}]}</script>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="arcade.css">
   <!-- Google Tag Manager -->
@@ -26,7 +30,7 @@
   <!-- End Google Tag Manager (noscript) -->
   <nav class="arcade-nav" aria-label="Arcade games">
     <a class="arcade-brand" href="#arcade">NEON SERPENT</a>
-    <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="mines">MINES</button><button class="arcade-tab" data-game="breakout">BREAKOUT</button><button class="arcade-tab" data-game="shooter">SHOOTER</button></div>
+    <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="flappy">FLAPPY</button><button class="arcade-tab" data-game="mines">MINES</button><button class="arcade-tab" data-game="breakout">BREAKOUT</button><button class="arcade-tab" data-game="shooter">SHOOTER</button></div>
   </nav>
   <main id="arcade">
     <section class="game" id="snake-game">
@@ -43,6 +47,7 @@
       <div class="mine-stats"><span>MINES <b id="mine-count">10</b></span><span>TIME <b id="mine-time">00:00</b></span><span id="mine-message">CLEAR THE GRID.</span><button id="flag-mode" aria-pressed="false">⚑ FLAG MODE</button></div>
       <div id="mine-board" class="mine-board" role="grid" aria-label="Minesweeper board"></div>
       <p class="mine-help">TAP A TILE TO REVEAL IT. FLAG MODE MARKS SUSPECTED MINES.</p>
+      <section class="seo-copy" aria-label="About Neon Mines"><h2>Play Minesweeper Online</h2><p>Clear a safe path through easy, medium, or hard Minesweeper grids. Flag suspected mines, chase your fastest completion time, and compare global results for each difficulty.</p></section>
     </section>
     <section class="breakout-game" id="breakout-game" hidden>
       <header><div class="logo"><b>▰</b><span><small>IMPACT PROTOCOL</small><h1>NEON <i>BREAKOUT</i></h1></span></div><button id="breakout-pause" aria-label="Pause Breakout">Ⅱ</button></header>
@@ -50,8 +55,17 @@
       <div class="breakout-arena"><canvas id="breakout-canvas" width="600" height="600" aria-label="Neon Breakout game"></canvas><div class="overlay" id="breakout-overlay"><small>BRICKS ON THE GRID</small><h2 id="breakout-title">READY, PILOT?</h2><p id="breakout-message">Break the formation, protect your last ball, and climb the global impact board.</p><button id="breakout-start">LAUNCH RUN <b>→</b></button><small>DRAG, SWIPE, OR USE ← →</small></div></div>
       <p class="legend breakout-legend"><span>▰ IMPACT BRICK <b>+10</b></span><span>● POWER CORE <b>WIDEN PADDLE</b></span><span>CLEAR A WAVE TO ACCELERATE</span></p>
       <div class="touch-controls breakout-controls" aria-label="Breakout controls"><button data-breakout-direction="left" aria-label="Move paddle left">←</button><button id="breakout-launch" aria-label="Launch ball">●</button><button data-breakout-direction="right" aria-label="Move paddle right">→</button></div>
+      <section class="seo-copy" aria-label="About Neon Breakout"><h2>Play Breakout Online</h2><p>Control the paddle with arrow keys, touch buttons, or pointer movement. Break every neon brick, collect paddle power-ups, survive each wave, and climb the global Breakout leaderboard.</p></section>
     </section>
-    <section class="shooter-game" id="shooter-game" hidden><header><div class="logo"><b>◉</b><span><small>CLUSTER PROTOCOL</small><h1>BUBBLE <i>SHOOTER</i></h1></span></div></header><div class="shooter-arena"><canvas id="shooter-canvas" width="600" height="600" aria-label="Bubble Shooter preview"></canvas><div class="overlay" id="shooter-overlay"><small>LOCK ONTO A CLUSTER</small><h2 id="shooter-title">READY, PILOT?</h2><p id="shooter-message">Move your pointer to aim. The guide previews wall bounces before you fire.</p><button id="shooter-start">START SHOOTING <b>→</b></button><small>DRAG OR CLICK TO AIM</small></div></div><p class="legend"><span>◉ MATCH 3+ <b>POP</b></span><span>GUIDE <b>SHOWS BOUNCES</b></span><span>RELEASE TO FIRE</span></p></section>
+    <section class="shooter-game" id="shooter-game" hidden><header><div class="logo"><b>◉</b><span><small>CLUSTER PROTOCOL</small><h1>BUBBLE <i>SHOOTER</i></h1></span></div></header><div class="shooter-arena"><canvas id="shooter-canvas" width="600" height="600" aria-label="Bubble Shooter online game"></canvas><div class="overlay" id="shooter-overlay"><small>LOCK ONTO A CLUSTER</small><h2 id="shooter-title">READY, PILOT?</h2><p id="shooter-message">Move your pointer to aim. The guide previews wall bounces before you fire.</p><button id="shooter-start">START SHOOTING <b>→</b></button><small>DRAG OR CLICK TO AIM</small></div></div><p class="legend"><span>◉ MATCH 3+ <b>POP</b></span><span>GUIDE <b>SHOWS BOUNCES</b></span><span>RELEASE TO FIRE</span></p><section class="seo-copy" aria-label="About Bubble Shooter"><h2>Play Bubble Shooter Online</h2><p>Aim with the trajectory guide, bank shots off the walls, match three or more bubbles, and use bomb and rainbow bubbles to clear large clusters.</p></section></section>
+    <section class="flappy-game" id="flappy-game" hidden>
+      <header><div class="logo"><b>〰</b><span><small>FLIGHT PROTOCOL</small><h1>FLAPPY <i>SERPENT</i></h1></span></div><button id="flappy-sound" aria-label="Toggle Flappy sound">♪</button></header>
+      <div class="stats"><div>SCORE<strong id="flappy-score">000</strong></div><div>PERSONAL BEST<strong id="flappy-best">000</strong></div><div>SPEED<strong id="flappy-speed">01</strong></div><div class="level-stat">GATES<strong id="flappy-gates">00</strong></div></div>
+      <div class="flappy-arena"><canvas id="flappy-canvas" width="600" height="600" aria-label="Flappy Serpent game"></canvas><div class="overlay" id="flappy-overlay"><small>THE SKYGRID IS OPEN</small><h2 id="flappy-title">READY TO FLY?</h2><p id="flappy-message">Tap to boost through the neon gates. Every five gates makes the flight faster.</p><button id="flappy-start">START FLIGHT <b>→</b></button><small>TAP, CLICK, OR PRESS SPACE</small></div></div>
+      <p class="legend"><span>TAP TO <b>BOOST</b></span><span>CLEAR GATE <b>+10</b></span><span>SPEED UP EVERY 5 GATES</span></p>
+      <button class="flappy-boost" id="flappy-boost">BOOST ↑</button>
+      <section class="seo-copy" aria-label="About Flappy Serpent"><h2>Play Flappy Serpent Online</h2><p>Tap, click, or press Space to guide the serpent through neon gates. Clear gates for points, adapt as the flight speeds up, and submit your best score to the global leaderboard.</p></section>
+    </section>
     <aside>
       <section class="leaderboard-panel" id="snake-leaderboard">
         <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>TOP PILOTS</i></h2></span><small class="live">● LIVE</small></div>
@@ -76,12 +90,14 @@
         <ol id="shooter-leaders"><li class="empty">SYNCING CLUSTER RUNS…</li></ol>
         <footer>GLOBAL SCORES SYNCED LIVE</footer>
       </section>
+      <section class="leaderboard-panel" id="flappy-leaderboard" aria-label="Flappy Serpent leaderboard" hidden><div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>SKY PILOTS</i></h2></span><small class="live">● LIVE</small></div><ol id="flappy-leaders"></ol><div class="submit" id="flappy-submit" hidden><small>NEW HIGH SCORE?</small><div><input id="flappy-name" maxlength="16" placeholder="YOUR CALLSIGN"><button id="flappy-upload">UPLOAD</button></div><small id="flappy-notice"></small></div><footer>GLOBAL SCORES SYNCED LIVE <button id="flappy-refresh">↻ REFRESH</button></footer></section>
     </aside>
   </main>
   <script src="game.js"></script>
   <script src="minesweeper.js"></script>
   <script src="breakout.js"></script>
   <script src="bubble-shooter.js"></script>
+  <script src="flappy-serpent.js"></script>
   <script src="analytics.js"></script>
   <script src="arcade-switcher.js"></script>
   <script type="module" src="leaderboard.js"></script>
