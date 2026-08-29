@@ -7,6 +7,7 @@
     flappy: { game: '#flappy-game', panel: '#flappy-leaderboard' },
     stack: { game: '#stack-game', panel: '#stack-leaderboard' },
     tower: { game: '#tower-game', panel: '#tower-leaderboard' },
+    storm: { game: '#storm-game', panel: '#storm-leaderboard' },
   };
   const gameSections = Object.values(games).map(({ game }) => document.querySelector(game));
   const panels = Object.values(games).map(({ panel }) => document.querySelector(panel));
