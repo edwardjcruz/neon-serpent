@@ -15,12 +15,21 @@ async function startLeaderboard() {
   const client = generateClient({ authMode: 'identityPool' });
 
   async function list({ board = BOARD, sortDirection = 'DESC', limit = 10 } = {}) {
-  const { data, errors } = await client.models.Score.listLeaderboard(
-    { board, sortDirection, limit },
-    { authMode: 'identityPool' },
-  );
-  if (errors?.length) throw new Error(errors.map((error) => error.message).join(' '));
-    return data;
+    const displayLimit = Math.max(1, Math.min(50, Number(limit) || 10));
+    const queryLimit = Math.min(100, displayLimit * 10);
+    const { data, errors } = await client.models.Score.listLeaderboard(
+      { board, sortDirection, limit: queryLimit },
+      { authMode: 'identityPool' },
+    );
+    if (errors?.length) throw new Error(errors.map((error) => error.message).join(' '));
+
+    const seen = new Set();
+    return data.filter((entry) => {
+      const player = cleanCallsign(entry.callsign).replace(/\s+/g, ' ').toLocaleLowerCase();
+      if (!player || seen.has(player)) return false;
+      seen.add(player);
+      return true;
+    }).slice(0, displayLimit);
   }
 
   async function submit({ callsign, score, board = BOARD }) {
