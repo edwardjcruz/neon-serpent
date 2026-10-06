@@ -7,6 +7,8 @@ globalThis.NeonPoolEngine = (() => {
   // Spin: follow/draw is stored as speed the cue ball gains (or loses) along its path after its first hit and
   // fades while it slides; side spin (english) kicks the cue ball sideways as it comes off a rail.
   const FOLLOW = .75, FOLLOW_FADE = 1.6, ENGLISH = .22;
+  // Pocket centres, numbered for calling the 8: 0–2 along the top rail left to right, 3–5 along the bottom.
+  const POCKETS = [[L, T], [MID, T], [R, T], [L, B], [MID, B], [R, B]];
   const RACK = [[1], [11, 3], [14, 8, 6], [2, 13, 15, 7], [9, 4, 12, 10, 5]];
 
   const isSolid = (n) => n >= 1 && n <= 7;
@@ -14,11 +16,12 @@ globalThis.NeonPoolEngine = (() => {
   const inGroup = (n, group) => (group === 'solids' ? isSolid(n) : group === 'stripes' ? isStripe(n) : false);
   const clone = (state) => JSON.parse(JSON.stringify(state));
 
-  function newRack(breaker = 0) {
+  // `match` carries the running score of racks won ([seat 0, seat 1]) from one rack to the next.
+  function newRack(breaker = 0, match = [0, 0]) {
     const balls = [{ n: 0, x: HEAD_X, y: CY, vx: 0, vy: 0, in: false }];
     const dx = BR * Math.sqrt(3) + .3;
     RACK.forEach((row, r) => row.forEach((n, i) => balls.push({ n, x: FOOT_X + r * dx, y: CY + (i - (row.length - 1) / 2) * (BR * 2 + .3), vx: 0, vy: 0, in: false })));
-    return { balls, turn: breaker, groups: null, isBreak: true, ballInHand: true, kitchen: true, winner: null, message: 'BREAK SHOT — PLACE THE CUE BALL BEHIND THE LINE', shots: 0 };
+    return { balls, turn: breaker, groups: null, isBreak: true, ballInHand: true, kitchen: true, winner: null, message: 'BREAK SHOT — PLACE THE CUE BALL BEHIND THE LINE', shots: 0, match: [...match] };
   }
 
   const ball = (state, n) => state.balls.find((item) => item.n === n);
@@ -34,6 +37,13 @@ globalThis.NeonPoolEngine = (() => {
 
   const inMouthX = (x) => x < L + CORNER_MOUTH || x > R - CORNER_MOUTH || Math.abs(x - MID) < SIDE_MOUTH;
   const inMouthY = (y) => y < T + CORNER_MOUTH || y > B - CORNER_MOUTH;
+  function pocketOf(x, y) {
+    let best = 0, distance = Infinity;
+    POCKETS.forEach(([px, py], index) => { const d = (px - x) ** 2 + (py - y) ** 2; if (d < distance) { distance = d; best = index; } });
+    return best;
+  }
+  // Sound cues for the animation only (rules never read them): [step, kind, strength].
+  const sound = (events, kind, strength) => { if (events.sfx && events.sfx.length < 400) events.sfx.push([events.now, kind, strength]); };
 
   // Advance one fixed step. `events` collects what the rules need: first contact and pocketed balls.
   function step(balls, events) {
@@ -41,12 +51,12 @@ globalThis.NeonPoolEngine = (() => {
     for (const b of balls) {
       if (b.in || (b.vx === 0 && b.vy === 0)) continue;
       b.x += b.vx * STEP; b.y += b.vy * STEP;
-      if (b.y < T + BR && b.vy < 0 && !inMouthX(b.x)) { b.y = T + BR; english(b, -b.vy, true); b.vy = -b.vy * .78; b.vx *= .96; }
-      if (b.y > B - BR && b.vy > 0 && !inMouthX(b.x)) { b.y = B - BR; english(b, b.vy, true); b.vy = -b.vy * .78; b.vx *= .96; }
-      if (b.x < L + BR && b.vx < 0 && !inMouthY(b.y)) { b.x = L + BR; english(b, -b.vx, false); b.vx = -b.vx * .78; b.vy *= .96; }
-      if (b.x > R - BR && b.vx > 0 && !inMouthY(b.y)) { b.x = R - BR; english(b, b.vx, false); b.vx = -b.vx * .78; b.vy *= .96; }
+      if (b.y < T + BR && b.vy < 0 && !inMouthX(b.x)) { b.y = T + BR; english(b, -b.vy, true); sound(events, 'rail', -b.vy); b.vy = -b.vy * .78; b.vx *= .96; }
+      if (b.y > B - BR && b.vy > 0 && !inMouthX(b.x)) { b.y = B - BR; english(b, b.vy, true); sound(events, 'rail', b.vy); b.vy = -b.vy * .78; b.vx *= .96; }
+      if (b.x < L + BR && b.vx < 0 && !inMouthY(b.y)) { b.x = L + BR; english(b, -b.vx, false); sound(events, 'rail', -b.vx); b.vx = -b.vx * .78; b.vy *= .96; }
+      if (b.x > R - BR && b.vx > 0 && !inMouthY(b.y)) { b.x = R - BR; english(b, b.vx, false); sound(events, 'rail', b.vx); b.vx = -b.vx * .78; b.vy *= .96; }
       // Rails bounce everywhere except at the pocket mouths, so a centre past the rail line has dropped.
-      if (b.x < L || b.x > R || b.y < T || b.y > B) { b.in = true; b.vx = 0; b.vy = 0; events.pocketed.push(b.n); }
+      if (b.x < L || b.x > R || b.y < T || b.y > B) { b.in = true; b.vx = 0; b.vy = 0; events.pocketed.push(b.n); events.into[b.n] = pocketOf(b.x, b.y); sound(events, 'pocket', b.n); }
     }
     for (let i = 0; i < balls.length; i += 1) {
       const a = balls[i]; if (a.in) continue;
@@ -61,6 +71,7 @@ globalThis.NeonPoolEngine = (() => {
         const cue = a.n === 0 ? a : c.n === 0 ? c : null, cueSpeed = cue && cue.top ? Math.sqrt(cue.vx * cue.vx + cue.vy * cue.vy) : 0;
         const pathX = cueSpeed ? cue.vx / cueSpeed : 0, pathY = cueSpeed ? cue.vy / cueSpeed : 0;
         const impulse = approach * .98;
+        sound(events, 'click', approach);
         a.vx -= impulse * nx; a.vy -= impulse * ny; c.vx += impulse * nx; c.vy += impulse * ny;
         // Follow carries the cue ball on through the object ball; draw (negative) pulls it back.
         if (cueSpeed) { cue.vx += pathX * cue.top; cue.vy += pathY * cue.top; cue.top = 0; }
@@ -91,22 +102,25 @@ globalThis.NeonPoolEngine = (() => {
     const vx = Number(shot?.vx), vy = Number(shot?.vy), cueX = Number(shot?.cueX), cueY = Number(shot?.cueY);
     const clamp = (value) => (Number.isFinite(Number(value)) ? Math.max(-1, Math.min(1, Number(value))) : 0);
     const spinX = clamp(shot?.spinX), spinY = clamp(shot?.spinY);
+    // The pocket called for the 8 (0–5). Only checked when the shooter is on the 8.
+    const call = Number.isInteger(shot?.call) && shot.call >= 0 && shot.call < POCKETS.length ? shot.call : null;
     if (![vx, vy].every(Number.isFinite) || vx * vx + vy * vy > MAX_SPEED * MAX_SPEED * 1.01 || vx * vx + vy * vy < 1) return null;
     const cue = ball(state, 0);
-    if (state.ballInHand) { if (!Number.isFinite(cueX) || !Number.isFinite(cueY) || !canPlaceCue(state, cueX, cueY)) return null; return { vx, vy, cueX, cueY, spinX, spinY }; }
-    return { vx, vy, cueX: cue.x, cueY: cue.y, spinX, spinY };
+    if (state.ballInHand) { if (!Number.isFinite(cueX) || !Number.isFinite(cueY) || !canPlaceCue(state, cueX, cueY)) return null; return { vx, vy, cueX, cueY, spinX, spinY, call }; }
+    return { vx, vy, cueX: cue.x, cueY: cue.y, spinX, spinY, call };
   }
 
   // A shot in progress, advanced a few steps per animation frame so both browsers draw the same motion.
-  function beginShot(state, shot) {
+  function beginShot(state, shot, { sounds = false } = {}) {
     const sim = clone(state), cue = ball(sim, 0);
     cue.in = false; cue.x = shot.cueX; cue.y = shot.cueY; cue.vx = shot.vx; cue.vy = shot.vy;
     cue.top = (shot.spinY || 0) * Math.sqrt(shot.vx * shot.vx + shot.vy * shot.vy) * FOLLOW; cue.side = shot.spinX || 0;
-    return { before: state, table: sim, events: { firstHit: null, pocketed: [] }, steps: 0, done: false };
+    const events = { firstHit: null, pocketed: [], into: {}, now: 0, sfx: sounds ? [] : null };
+    return { before: state, shot, table: sim, events, steps: 0, done: false };
   }
   function advance(run, steps) {
     for (let i = 0; i < steps && !run.done; i += 1) {
-      run.steps += 1;
+      run.steps += 1; run.events.now = run.steps;
       if (!step(run.table.balls, run.events) || run.steps >= MAX_STEPS) run.done = true;
     }
     return run.done;
@@ -120,7 +134,7 @@ globalThis.NeonPoolEngine = (() => {
 
   // Apply 8-ball rules to the finished simulation and return the next table state.
   function resolve(run) {
-    const before = run.before, next = run.table, { firstHit, pocketed } = run.events;
+    const before = run.before, next = run.table, { firstHit, pocketed, into } = run.events, call = run.shot?.call ?? null;
     const seat = before.turn, other = 1 - seat, wasOnEight = onEight(before, seat), wasBreak = before.isBreak;
     const scratch = pocketed.includes(0), objects = pocketed.filter((n) => n !== 0 && n !== 8);
     let foul = null;
@@ -132,13 +146,16 @@ globalThis.NeonPoolEngine = (() => {
 
     next.balls.forEach((b) => { b.vx = 0; b.vy = 0; delete b.top; delete b.side; });
     next.isBreak = false; next.kitchen = false; next.ballInHand = false; next.shots = before.shots + 1;
+    const match = before.match || [0, 0];
     const names = ['PLAYER 1', 'PLAYER 2'];
 
     if (pocketed.includes(8)) {
       if (wasBreak) respotEight(next);
       else {
-        next.winner = wasOnEight && !foul ? seat : other;
-        next.message = next.winner === seat ? 'SANK THE 8 — RACK WON' : foul ? `8 BALL DOWN ON A FOUL (${foul})` : '8 BALL DOWN EARLY';
+        const wrongPocket = wasOnEight && !foul && call !== null && into[8] !== call;
+        next.winner = wasOnEight && !foul && !wrongPocket ? seat : other;
+        next.message = next.winner === seat ? 'SANK THE 8 — RACK WON' : wrongPocket ? '8 BALL IN THE WRONG POCKET' : foul ? `8 BALL DOWN ON A FOUL (${foul})` : '8 BALL DOWN EARLY';
+        next.match = next.winner === 0 ? [match[0] + 1, match[1]] : [match[0], match[1] + 1];
         if (scratch) ball(next, 0).in = true;
         return next;
       }
@@ -168,5 +185,5 @@ globalThis.NeonPoolEngine = (() => {
     return resolve(run);
   }
 
-  return { W, H, L, R, T, B, BR, MID, HEAD_X, CY, MAX_SPEED, FOLLOW, FOLLOW_FADE, isSolid, isStripe, inGroup, newRack, canPlaceCue, normalizeShot, beginShot, advance, resolve, playShot, remaining, onEight, clone };
+  return { W, H, L, R, T, B, BR, MID, HEAD_X, CY, MAX_SPEED, FOLLOW, FOLLOW_FADE, POCKETS, STEP, pocketOf, isSolid, isStripe, inGroup, newRack, canPlaceCue, normalizeShot, beginShot, advance, resolve, playShot, remaining, onEight, clone };
 })();
