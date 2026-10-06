@@ -13,8 +13,12 @@
   const me = (() => { try { return localStorage.neonPoolId ||= crypto.randomUUID(); } catch { return crypto.randomUUID(); } })();
   let savedName = ''; try { savedName = localStorage.neonPoolName || ''; } catch {}
 
+  let spin = { x: 0, y: 0 }; // where the cue tip strikes: x = right english, y = follow (+) / draw (−)
   let mode = 'local', state = E.newRack(0), angle = 0, place = null, run = null, final = null, acc = 0, lastTime = 0, frame = 0, dragging = null;
   let online = null; // { code, seat, seq, room, sub, poll, pending, sending }
+  // Phones held upright get the table stood on its end so the balls are big enough to aim at.
+  const portraitQuery = matchMedia('(max-width: 760px) and (orientation: portrait)');
+  let portrait = false;
 
   const clean = (value) => String(value || '').trim().replace(/[^a-zA-Z0-9 _-]/g, '').slice(0, 16);
   const names = () => (mode === 'online' && online?.room ? [online.room.hostName, online.room.guestName || 'WAITING…'] : ['PLAYER 1', 'PLAYER 2']);
@@ -83,7 +87,8 @@
     ctx.fillStyle = E.isStripe(b.n) ? '#f7faee' : color; ctx.fill(); ctx.clip();
     if (E.isStripe(b.n)) { ctx.fillStyle = color; ctx.fillRect(x - r, y - r * .55, r * 2, r * 1.1); }
     ctx.beginPath(); ctx.arc(x, y, r * .48, 0, Math.PI * 2); ctx.fillStyle = '#f7faee'; ctx.fill();
-    ctx.fillStyle = '#142226'; ctx.font = '700 7px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.n, x, y + .5);
+    ctx.translate(x, y); if (portrait) ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = '#142226'; ctx.font = '700 7px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.n, 0, .5);
     ctx.restore();
     if (b.n === 8) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = '#ff4f8c80'; ctx.lineWidth = 1; ctx.stroke(); }
   }
@@ -105,6 +110,8 @@
 
   function draw() {
     const table = run ? run.table : state;
+    // Portrait maps table (x, y) to screen (y, W − x): the break end sits at the bottom, the rack at the top.
+    if (portrait) ctx.setTransform(0, -1, 1, 0, 0, E.W); else ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = '#0b1517'; ctx.fillRect(0, 0, E.W, E.H);
     ctx.fillStyle = '#142f33'; ctx.fillRect(E.L - 22, E.T - 22, E.R - E.L + 44, E.B - E.T + 44);
     ctx.fillStyle = '#17484a'; ctx.fillRect(E.L, E.T, E.R - E.L, E.B - E.T);
@@ -131,6 +138,13 @@
       ctx.strokeStyle = '#f7faee90'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 6]); ctx.beginPath(); ctx.moveTo(cue.x, cue.y); ctx.lineTo(gx, gy); ctx.stroke(); ctx.setLineDash([]);
       ctx.beginPath(); ctx.arc(gx, gy, E.BR, 0, Math.PI * 2); ctx.strokeStyle = '#f7faeeaa'; ctx.stroke();
       if (hit) { const ox = hit.x - gx, oy = hit.y - gy, d = Math.hypot(ox, oy) || 1; ctx.strokeStyle = '#cffb4bcc'; ctx.beginPath(); ctx.moveTo(hit.x, hit.y); ctx.lineTo(hit.x + ox / d * 70, hit.y + oy / d * 70); ctx.stroke(); }
+      if (hit) {
+        // Where the cue ball heads after contact: the part of its path the object ball doesn't take, plus follow or draw.
+        const ox = hit.x - gx, oy = hit.y - gy, d = Math.hypot(ox, oy) || 1, nx = ox / d, ny = oy / d, dn = dx * nx + dy * ny;
+        const speed = E.MAX_SPEED * Math.max(.05, power()), top = spin.y * E.FOLLOW * Math.exp(-E.FOLLOW_FADE * t / speed);
+        const ax = dx - nx * dn + dx * top, ay = dy - ny * dn + dy * top, length = Math.min(110, Math.hypot(ax, ay) * 110);
+        if (length > 4) { const a = Math.hypot(ax, ay); ctx.strokeStyle = '#ff4f8ccc'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + ax / a * length, gy + ay / a * length); ctx.stroke(); ctx.setLineDash([]); }
+      }
       const back = E.BR + 6 + power() * 46;
       ctx.lineCap = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = '#e8c690'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 250), cue.y - dy * (back + 250)); ctx.stroke();
       ctx.lineWidth = 6; ctx.strokeStyle = '#68d8ff'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 8), cue.y - dy * (back + 8)); ctx.stroke(); ctx.lineCap = 'butt';
@@ -164,9 +178,10 @@
   async function shoot() {
     if (!canShoot()) return;
     const cue = cuePosition(), speed = E.MAX_SPEED * Math.max(.05, power());
-    const shot = E.normalizeShot(state, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, cueX: cue.x, cueY: cue.y });
+    const shot = E.normalizeShot(state, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, cueX: cue.x, cueY: cue.y, spinX: spin.x, spinY: spin.y });
     if (!shot) { $('#pool-status').textContent = 'THE CUE BALL CANNOT GO THERE.'; return; }
     if (state.isBreak) track('game_started', {});
+    setSpin(0, 0);
     if (mode === 'local') { animate(shot); return; }
     const next = E.playShot(state, shot), seq = online.seq + 1;
     online.seq = seq; online.sending = true;
@@ -317,7 +332,17 @@
   }
 
   // ---------- input ----------
-  function toTable(event) { const rect = canvas.getBoundingClientRect(); return { x: (event.clientX - rect.left) * E.W / rect.width, y: (event.clientY - rect.top) * E.H / rect.height }; }
+  function toTable(event) {
+    const rect = canvas.getBoundingClientRect(), sx = (event.clientX - rect.left) * canvas.width / rect.width, sy = (event.clientY - rect.top) * canvas.height / rect.height;
+    return portrait ? { x: E.W - sy, y: sx } : { x: sx, y: sy };
+  }
+  function applyOrientation() {
+    portrait = portraitQuery.matches;
+    canvas.width = portrait ? E.H : E.W; canvas.height = portrait ? E.W : E.H;
+    $('#pool-game').classList.toggle('pool-portrait', portrait);
+    draw();
+  }
+  portraitQuery.addEventListener('change', applyOrientation);
   function aimAt(point) { const cue = cuePosition(); if (cue && (point.x !== cue.x || point.y !== cue.y)) { angle = Math.atan2(point.y - cue.y, point.x - cue.x); draw(); } }
   canvas.addEventListener('pointerdown', (event) => {
     if (!canShoot()) return;
@@ -334,8 +359,37 @@
   });
   ['pointerup', 'pointercancel'].forEach((name) => canvas.addEventListener(name, () => { dragging = null; }));
   $('#pool-power').addEventListener('input', draw);
+
+  // Spin pad: a cue ball face you tap or drag to choose where the tip strikes. Double-tap (or press 0) re-centres it.
+  const spinPad = $('#pool-spin');
+  function setSpin(x, y) {
+    const length = Math.hypot(x, y), scale = length > 1 ? 1 / length : 1;
+    spin = { x: Math.round(x * scale * 20) / 20, y: Math.round(y * scale * 20) / 20 };
+    spinPad.style.setProperty('--spin-x', spin.x); spinPad.style.setProperty('--spin-y', -spin.y);
+    const side = spin.x > .05 ? 'right' : spin.x < -.05 ? 'left' : '', top = spin.y > .05 ? 'follow' : spin.y < -.05 ? 'draw' : '';
+    const label = [top, side && `${side} english`].filter(Boolean).join(' + ') || 'center';
+    spinPad.setAttribute('aria-label', `Cue ball spin: ${label}`); $('#pool-spin-label').textContent = [top.toUpperCase(), side === 'left' ? '←' : side === 'right' ? '→' : ''].filter(Boolean).join(' ') || 'SPIN';
+    draw();
+  }
+  function spinFromPointer(event) { const rect = spinPad.getBoundingClientRect(), r = rect.width * .4; setSpin((event.clientX - rect.left - rect.width / 2) / r, -(event.clientY - rect.top - rect.height / 2) / r); }
+  spinPad.addEventListener('pointerdown', (event) => { event.preventDefault(); spinPad.setPointerCapture(event.pointerId); spinFromPointer(event); });
+  spinPad.addEventListener('pointermove', (event) => { if (spinPad.hasPointerCapture(event.pointerId)) spinFromPointer(event); });
+  spinPad.addEventListener('dblclick', () => setSpin(0, 0));
+  spinPad.addEventListener('keydown', (event) => {
+    const moves = { ArrowLeft: [-.2, 0], ArrowRight: [.2, 0], ArrowUp: [0, .2], ArrowDown: [0, -.2] };
+    if (moves[event.key]) { event.preventDefault(); event.stopPropagation(); setSpin(spin.x + moves[event.key][0], spin.y + moves[event.key][1]); }
+    if (event.key === '0') setSpin(0, 0);
+  });
   $('#pool-shoot').addEventListener('click', shoot);
-  document.querySelectorAll('[data-pool-aim]').forEach((button) => button.addEventListener('click', () => { angle += Number(button.dataset.poolAim) * Math.PI / 180; draw(); }));
+  // Holding an aim button keeps turning, slowly at first for fine adjustment and then faster.
+  document.querySelectorAll('[data-pool-aim]').forEach((button) => {
+    let timer = 0, held = 0;
+    const turn = () => { angle += Number(button.dataset.poolAim) * (held < 12 ? .25 : held < 30 ? .6 : 1.5) * Math.PI / 180; held += 1; draw(); };
+    const stop = () => { clearInterval(timer); timer = 0; };
+    button.addEventListener('pointerdown', (event) => { event.preventDefault(); stop(); held = 0; turn(); timer = setInterval(turn, 60); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach((name) => button.addEventListener(name, stop));
+    button.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); held = 0; turn(); } });
+  });
   addEventListener('keydown', (event) => {
     if ($('#pool-game').hidden || event.target.matches('input,textarea')) return;
     const step = (event.shiftKey ? 3 : .5) * Math.PI / 180;
@@ -365,6 +419,7 @@
 
   $('#pool-name').value = savedName;
   setConnection('OFFLINE', false);
+  applyOrientation();
   setState(state);
 
   // Invite links (?room=CODE) open the pool tab and join straight away.
