@@ -44,6 +44,8 @@ async function startLeaderboard() {
   }
 
   window.neonLeaderboard = { list, submit };
+  // Other modules (online pool rooms) reuse this configured client instead of bundling Amplify twice.
+  window.neonDataClient = client;
   window.dispatchEvent(new Event('neon-leaderboard-ready'));
 }
 

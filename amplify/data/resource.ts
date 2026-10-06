@@ -13,6 +13,25 @@ const schema = a.schema({
     ])
     // A guest can submit and view scores, but cannot alter or delete a record.
     .authorization((allow) => [allow.guest().to(['create', 'read'])]),
+
+  // A private 8-ball room. Players find it only by its code; the table state is a JSON string
+  // written by whoever just shot, and both browsers listen for updates to stay in sync.
+  PoolRoom: a
+    .model({
+      code: a.string().required(),
+      hostId: a.string().required(),
+      hostName: a.string().required(),
+      guestId: a.string(),
+      guestName: a.string(),
+      status: a.string().required(),
+      seq: a.integer().required(),
+      state: a.string().required(),
+      shot: a.string(),
+      // Epoch seconds; DynamoDB deletes abandoned rooms after this time.
+      expiresAt: a.integer().required(),
+    })
+    .identifier(['code'])
+    .authorization((allow) => [allow.guest().to(['create', 'read', 'update'])]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
