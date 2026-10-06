@@ -13,6 +13,7 @@
   const me = (() => { try { return localStorage.neonPoolId ||= crypto.randomUUID(); } catch { return crypto.randomUUID(); } })();
   let savedName = ''; try { savedName = localStorage.neonPoolName || ''; } catch {}
 
+  let spin = { x: 0, y: 0 }; // where the cue tip strikes: x = right english, y = follow (+) / draw (−)
   let mode = 'local', state = E.newRack(0), angle = 0, place = null, run = null, final = null, acc = 0, lastTime = 0, frame = 0, dragging = null;
   let online = null; // { code, seat, seq, room, sub, poll, pending, sending }
   // Phones held upright get the table stood on its end so the balls are big enough to aim at.
@@ -137,6 +138,13 @@
       ctx.strokeStyle = '#f7faee90'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 6]); ctx.beginPath(); ctx.moveTo(cue.x, cue.y); ctx.lineTo(gx, gy); ctx.stroke(); ctx.setLineDash([]);
       ctx.beginPath(); ctx.arc(gx, gy, E.BR, 0, Math.PI * 2); ctx.strokeStyle = '#f7faeeaa'; ctx.stroke();
       if (hit) { const ox = hit.x - gx, oy = hit.y - gy, d = Math.hypot(ox, oy) || 1; ctx.strokeStyle = '#cffb4bcc'; ctx.beginPath(); ctx.moveTo(hit.x, hit.y); ctx.lineTo(hit.x + ox / d * 70, hit.y + oy / d * 70); ctx.stroke(); }
+      if (hit) {
+        // Where the cue ball heads after contact: the part of its path the object ball doesn't take, plus follow or draw.
+        const ox = hit.x - gx, oy = hit.y - gy, d = Math.hypot(ox, oy) || 1, nx = ox / d, ny = oy / d, dn = dx * nx + dy * ny;
+        const speed = E.MAX_SPEED * Math.max(.05, power()), top = spin.y * E.FOLLOW * Math.exp(-E.FOLLOW_FADE * t / speed);
+        const ax = dx - nx * dn + dx * top, ay = dy - ny * dn + dy * top, length = Math.min(110, Math.hypot(ax, ay) * 110);
+        if (length > 4) { const a = Math.hypot(ax, ay); ctx.strokeStyle = '#ff4f8ccc'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + ax / a * length, gy + ay / a * length); ctx.stroke(); ctx.setLineDash([]); }
+      }
       const back = E.BR + 6 + power() * 46;
       ctx.lineCap = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = '#e8c690'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 250), cue.y - dy * (back + 250)); ctx.stroke();
       ctx.lineWidth = 6; ctx.strokeStyle = '#68d8ff'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 8), cue.y - dy * (back + 8)); ctx.stroke(); ctx.lineCap = 'butt';
@@ -170,9 +178,10 @@
   async function shoot() {
     if (!canShoot()) return;
     const cue = cuePosition(), speed = E.MAX_SPEED * Math.max(.05, power());
-    const shot = E.normalizeShot(state, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, cueX: cue.x, cueY: cue.y });
+    const shot = E.normalizeShot(state, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, cueX: cue.x, cueY: cue.y, spinX: spin.x, spinY: spin.y });
     if (!shot) { $('#pool-status').textContent = 'THE CUE BALL CANNOT GO THERE.'; return; }
     if (state.isBreak) track('game_started', {});
+    setSpin(0, 0);
     if (mode === 'local') { animate(shot); return; }
     const next = E.playShot(state, shot), seq = online.seq + 1;
     online.seq = seq; online.sending = true;
@@ -350,6 +359,27 @@
   });
   ['pointerup', 'pointercancel'].forEach((name) => canvas.addEventListener(name, () => { dragging = null; }));
   $('#pool-power').addEventListener('input', draw);
+
+  // Spin pad: a cue ball face you tap or drag to choose where the tip strikes. Double-tap (or press 0) re-centres it.
+  const spinPad = $('#pool-spin');
+  function setSpin(x, y) {
+    const length = Math.hypot(x, y), scale = length > 1 ? 1 / length : 1;
+    spin = { x: Math.round(x * scale * 20) / 20, y: Math.round(y * scale * 20) / 20 };
+    spinPad.style.setProperty('--spin-x', spin.x); spinPad.style.setProperty('--spin-y', -spin.y);
+    const side = spin.x > .05 ? 'right' : spin.x < -.05 ? 'left' : '', top = spin.y > .05 ? 'follow' : spin.y < -.05 ? 'draw' : '';
+    const label = [top, side && `${side} english`].filter(Boolean).join(' + ') || 'center';
+    spinPad.setAttribute('aria-label', `Cue ball spin: ${label}`); $('#pool-spin-label').textContent = [top.toUpperCase(), side === 'left' ? '←' : side === 'right' ? '→' : ''].filter(Boolean).join(' ') || 'SPIN';
+    draw();
+  }
+  function spinFromPointer(event) { const rect = spinPad.getBoundingClientRect(), r = rect.width * .4; setSpin((event.clientX - rect.left - rect.width / 2) / r, -(event.clientY - rect.top - rect.height / 2) / r); }
+  spinPad.addEventListener('pointerdown', (event) => { event.preventDefault(); spinPad.setPointerCapture(event.pointerId); spinFromPointer(event); });
+  spinPad.addEventListener('pointermove', (event) => { if (spinPad.hasPointerCapture(event.pointerId)) spinFromPointer(event); });
+  spinPad.addEventListener('dblclick', () => setSpin(0, 0));
+  spinPad.addEventListener('keydown', (event) => {
+    const moves = { ArrowLeft: [-.2, 0], ArrowRight: [.2, 0], ArrowUp: [0, .2], ArrowDown: [0, -.2] };
+    if (moves[event.key]) { event.preventDefault(); event.stopPropagation(); setSpin(spin.x + moves[event.key][0], spin.y + moves[event.key][1]); }
+    if (event.key === '0') setSpin(0, 0);
+  });
   $('#pool-shoot').addEventListener('click', shoot);
   // Holding an aim button keeps turning, slowly at first for fine adjustment and then faster.
   document.querySelectorAll('[data-pool-aim]').forEach((button) => {

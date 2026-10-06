@@ -4,6 +4,9 @@ globalThis.NeonPoolEngine = (() => {
   const W = 800, H = 440, L = 40, R = 760, T = 40, B = 400, BR = 9;
   const MID = (L + R) / 2, HEAD_X = L + (R - L) * .25, FOOT_X = L + (R - L) * .75, CY = (T + B) / 2;
   const CORNER_MOUTH = 22, SIDE_MOUTH = 16, STEP = 1 / 240, MAX_STEPS = 240 * 40, MAX_SPEED = 1600;
+  // Spin: follow/draw is stored as speed the cue ball gains (or loses) along its path after its first hit and
+  // fades while it slides; side spin (english) kicks the cue ball sideways as it comes off a rail.
+  const FOLLOW = .75, FOLLOW_FADE = 1.6, ENGLISH = .22;
   const RACK = [[1], [11, 3], [14, 8, 6], [2, 13, 15, 7], [9, 4, 12, 10, 5]];
 
   const isSolid = (n) => n >= 1 && n <= 7;
@@ -38,10 +41,10 @@ globalThis.NeonPoolEngine = (() => {
     for (const b of balls) {
       if (b.in || (b.vx === 0 && b.vy === 0)) continue;
       b.x += b.vx * STEP; b.y += b.vy * STEP;
-      if (b.y < T + BR && b.vy < 0 && !inMouthX(b.x)) { b.y = T + BR; b.vy = -b.vy * .78; b.vx *= .96; }
-      if (b.y > B - BR && b.vy > 0 && !inMouthX(b.x)) { b.y = B - BR; b.vy = -b.vy * .78; b.vx *= .96; }
-      if (b.x < L + BR && b.vx < 0 && !inMouthY(b.y)) { b.x = L + BR; b.vx = -b.vx * .78; b.vy *= .96; }
-      if (b.x > R - BR && b.vx > 0 && !inMouthY(b.y)) { b.x = R - BR; b.vx = -b.vx * .78; b.vy *= .96; }
+      if (b.y < T + BR && b.vy < 0 && !inMouthX(b.x)) { b.y = T + BR; english(b, -b.vy, true); b.vy = -b.vy * .78; b.vx *= .96; }
+      if (b.y > B - BR && b.vy > 0 && !inMouthX(b.x)) { b.y = B - BR; english(b, b.vy, true); b.vy = -b.vy * .78; b.vx *= .96; }
+      if (b.x < L + BR && b.vx < 0 && !inMouthY(b.y)) { b.x = L + BR; english(b, -b.vx, false); b.vx = -b.vx * .78; b.vy *= .96; }
+      if (b.x > R - BR && b.vx > 0 && !inMouthY(b.y)) { b.x = R - BR; english(b, b.vx, false); b.vx = -b.vx * .78; b.vy *= .96; }
       // Rails bounce everywhere except at the pocket mouths, so a centre past the rail line has dropped.
       if (b.x < L || b.x > R || b.y < T || b.y > B) { b.in = true; b.vx = 0; b.vy = 0; events.pocketed.push(b.n); }
     }
@@ -55,32 +58,50 @@ globalThis.NeonPoolEngine = (() => {
         a.x -= nx * push; a.y -= ny * push; c.x += nx * push; c.y += ny * push;
         const approach = (a.vx - c.vx) * nx + (a.vy - c.vy) * ny;
         if (approach <= 0) continue;
+        const cue = a.n === 0 ? a : c.n === 0 ? c : null, cueSpeed = cue && cue.top ? Math.sqrt(cue.vx * cue.vx + cue.vy * cue.vy) : 0;
+        const pathX = cueSpeed ? cue.vx / cueSpeed : 0, pathY = cueSpeed ? cue.vy / cueSpeed : 0;
         const impulse = approach * .98;
         a.vx -= impulse * nx; a.vy -= impulse * ny; c.vx += impulse * nx; c.vy += impulse * ny;
+        // Follow carries the cue ball on through the object ball; draw (negative) pulls it back.
+        if (cueSpeed) { cue.vx += pathX * cue.top; cue.vy += pathY * cue.top; cue.top = 0; }
         if (events.firstHit === null && (a.n === 0 || c.n === 0)) events.firstHit = a.n === 0 ? c.n : a.n;
       }
     }
     for (const b of balls) {
       if (b.in || (b.vx === 0 && b.vy === 0)) continue;
+      if (b.top) b.top *= 1 - FOLLOW_FADE * STEP;
       const speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy), next = speed - (115 + speed * .25) * STEP;
       if (next < 4) { b.vx = 0; b.vy = 0; } else { b.vx *= next / speed; b.vy *= next / speed; moving = true; }
     }
     return moving;
   }
 
+  // Side spin pushes the cue ball along the rail toward its own right (positive) or left as it rebounds, then
+  // half of it wears off. `alongX` is true for the top and bottom rails. Called before the bounce flips velocity.
+  function english(b, into, alongX) {
+    if (!b.side) return;
+    const speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy), kick = b.side * ENGLISH * into;
+    if (!speed) return;
+    if (alongX) b.vx += kick * b.vy / speed; else b.vy -= kick * b.vx / speed;
+    b.side *= .5;
+  }
+
   // Validate a shot from the shooter's browser; returns null when it cannot be played on this table.
   function normalizeShot(state, shot) {
     const vx = Number(shot?.vx), vy = Number(shot?.vy), cueX = Number(shot?.cueX), cueY = Number(shot?.cueY);
+    const clamp = (value) => (Number.isFinite(Number(value)) ? Math.max(-1, Math.min(1, Number(value))) : 0);
+    const spinX = clamp(shot?.spinX), spinY = clamp(shot?.spinY);
     if (![vx, vy].every(Number.isFinite) || vx * vx + vy * vy > MAX_SPEED * MAX_SPEED * 1.01 || vx * vx + vy * vy < 1) return null;
     const cue = ball(state, 0);
-    if (state.ballInHand) { if (!Number.isFinite(cueX) || !Number.isFinite(cueY) || !canPlaceCue(state, cueX, cueY)) return null; return { vx, vy, cueX, cueY }; }
-    return { vx, vy, cueX: cue.x, cueY: cue.y };
+    if (state.ballInHand) { if (!Number.isFinite(cueX) || !Number.isFinite(cueY) || !canPlaceCue(state, cueX, cueY)) return null; return { vx, vy, cueX, cueY, spinX, spinY }; }
+    return { vx, vy, cueX: cue.x, cueY: cue.y, spinX, spinY };
   }
 
   // A shot in progress, advanced a few steps per animation frame so both browsers draw the same motion.
   function beginShot(state, shot) {
     const sim = clone(state), cue = ball(sim, 0);
     cue.in = false; cue.x = shot.cueX; cue.y = shot.cueY; cue.vx = shot.vx; cue.vy = shot.vy;
+    cue.top = (shot.spinY || 0) * Math.sqrt(shot.vx * shot.vx + shot.vy * shot.vy) * FOLLOW; cue.side = shot.spinX || 0;
     return { before: state, table: sim, events: { firstHit: null, pocketed: [] }, steps: 0, done: false };
   }
   function advance(run, steps) {
@@ -109,7 +130,7 @@ globalThis.NeonPoolEngine = (() => {
     else if (!wasBreak && !wasOnEight && before.groups && !inGroup(firstHit, groupOf(before, seat))) foul = 'WRONG BALL FIRST';
     else if (!wasBreak && !before.groups && firstHit === 8) foul = 'HIT THE 8 FIRST';
 
-    next.balls.forEach((b) => { b.vx = 0; b.vy = 0; });
+    next.balls.forEach((b) => { b.vx = 0; b.vy = 0; delete b.top; delete b.side; });
     next.isBreak = false; next.kitchen = false; next.ballInHand = false; next.shots = before.shots + 1;
     const names = ['PLAYER 1', 'PLAYER 2'];
 
@@ -147,5 +168,5 @@ globalThis.NeonPoolEngine = (() => {
     return resolve(run);
   }
 
-  return { W, H, L, R, T, B, BR, MID, HEAD_X, CY, MAX_SPEED, isSolid, isStripe, inGroup, newRack, canPlaceCue, normalizeShot, beginShot, advance, resolve, playShot, remaining, onEight, clone };
+  return { W, H, L, R, T, B, BR, MID, HEAD_X, CY, MAX_SPEED, FOLLOW, FOLLOW_FADE, isSolid, isStripe, inGroup, newRack, canPlaceCue, normalizeShot, beginShot, advance, resolve, playShot, remaining, onEight, clone };
 })();
