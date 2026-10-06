@@ -146,8 +146,8 @@
         if (length > 4) { const a = Math.hypot(ax, ay); ctx.strokeStyle = '#ff4f8ccc'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + ax / a * length, gy + ay / a * length); ctx.stroke(); ctx.setLineDash([]); }
       }
       const back = E.BR + 6 + power() * 46;
-      ctx.lineCap = 'round'; ctx.lineWidth = 6; ctx.strokeStyle = '#e8c690'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 250), cue.y - dy * (back + 250)); ctx.stroke();
-      ctx.lineWidth = 6; ctx.strokeStyle = '#68d8ff'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 8), cue.y - dy * (back + 8)); ctx.stroke(); ctx.lineCap = 'butt';
+      ctx.lineCap = 'round'; ctx.lineWidth = dragging === 'stick' ? 8 : 6; ctx.strokeStyle = dragging === 'stick' ? '#f6dca8' : '#e8c690'; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = dragging === 'stick' ? 14 : 0; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 250), cue.y - dy * (back + 250)); ctx.stroke();
+      ctx.shadowBlur = 0; ctx.lineWidth = 6; ctx.strokeStyle = '#68d8ff'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 8), cue.y - dy * (back + 8)); ctx.stroke(); ctx.lineCap = 'butt';
     }
     // Pocketed balls along the bottom rail, solids left and stripes right.
     const sunk = table.balls.filter((b) => b.in && b.n !== 0);
@@ -344,20 +344,37 @@
   }
   portraitQuery.addEventListener('change', applyOrientation);
   function aimAt(point) { const cue = cuePosition(); if (cue && (point.x !== cue.x || point.y !== cue.y)) { angle = Math.atan2(point.y - cue.y, point.x - cue.x); draw(); } }
+  // Touch: hold anywhere (the stick is the natural spot) and swing it around the cue ball. The aim turns by however far
+  // the finger circles the ball, so it never jumps on touch-down and the finger stays behind the shot, off the aim line.
+  let fingerAngle = 0, activePointer = null;
+  const angleFromCue = (point) => { const cue = cuePosition(); return { angle: Math.atan2(point.y - cue.y, point.x - cue.x), distance: Math.hypot(point.x - cue.x, point.y - cue.y) }; };
   canvas.addEventListener('pointerdown', (event) => {
     if (!canShoot()) return;
+    // Only the first finger steers; a second finger or a palm brushing the screen is ignored.
+    if (dragging && event.pointerId !== activePointer) return;
     const point = toTable(event);
-    dragging = state.ballInHand && place && Math.hypot(point.x - place.x, point.y - place.y) < E.BR * 3 ? 'cue' : 'aim';
-    canvas.setPointerCapture(event.pointerId);
-    if (dragging === 'aim') aimAt(point);
+    activePointer = event.pointerId; canvas.setPointerCapture(event.pointerId);
+    if (state.ballInHand && place && Math.hypot(point.x - place.x, point.y - place.y) < E.BR * 3) { dragging = 'cue'; return; }
+    if (event.pointerType === 'mouse') { dragging = 'aim'; aimAt(point); return; }
+    dragging = 'stick'; fingerAngle = angleFromCue(point).angle; draw();
   });
   canvas.addEventListener('pointermove', (event) => {
-    if (!canShoot()) return;
+    if (!canShoot() || (dragging && event.pointerId !== activePointer)) return;
     const point = toTable(event);
     if (dragging === 'cue') { if (E.canPlaceCue(state, point.x, point.y)) { place = point; draw(); } return; }
+    if (dragging === 'stick') {
+      const { angle: now, distance } = angleFromCue(point);
+      // Right over the cue ball tiny finger moves would whip the stick around, so ignore them there.
+      // Cap each step so one glitchy touch sample can't whip the stick around.
+      if (distance > E.BR * 2.5) { angle += Math.max(-.3, Math.min(.3, Math.atan2(Math.sin(now - fingerAngle), Math.cos(now - fingerAngle)))); draw(); }
+      fingerAngle = now; return;
+    }
     if (dragging === 'aim' || event.pointerType === 'mouse') aimAt(point);
   });
-  ['pointerup', 'pointercancel'].forEach((name) => canvas.addEventListener(name, () => { dragging = null; }));
+  ['pointerup', 'pointercancel'].forEach((name) => canvas.addEventListener(name, (event) => {
+    if (event.pointerId !== activePointer) return;
+    const wasStick = dragging === 'stick'; dragging = null; activePointer = null; if (wasStick) draw();
+  }));
   $('#pool-power').addEventListener('input', draw);
 
   // Spin pad: a cue ball face you tap or drag to choose where the tip strikes. Double-tap (or press 0) re-centres it.
