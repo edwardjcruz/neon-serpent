@@ -4,14 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && cp index.html styles.css arcade.css game.js minesweeper.js breakout.js bubble-shooter.js flappy-serpent.js neon-stack.js neon-tower.js neon-storm.js neon-pong.js pool-engine.js pool-ai.js pool-sound.js pool.js analytics.js arcade-switcher.js leaderboard.js robots.txt dist/ && if [ -f amplify_outputs.json ]; then cp amplify_outputs.json dist/; fi && ./node_modules/esbuild/bin/esbuild leaderboard.js --bundle --format=esm --target=es2022 --outfile=dist/leaderboard.js"
+    "build": "rm -rf dist && mkdir -p dist && cp index.html styles.css arcade.css game.js minesweeper.js breakout.js bubble-shooter.js flappy-serpent.js neon-stack.js neon-tower.js neon-storm.js neon-pong.js pool-engine.js pool-ai.js pool-sound.js pool.js analytics.js arcade-switcher.js leaderboard.js robots.txt sw.js manifest.webmanifest pool-icon-192.png pool-icon-512.png apple-touch-icon.png dist/ && if [ -f amplify_outputs.json ]; then cp amplify_outputs.json dist/; fi && ./node_modules/esbuild/bin/esbuild leaderboard.js --bundle --format=esm --target=es2022 --outfile=dist/leaderboard.js"
   },
   "dependencies": {
-    "aws-amplify": "latest"
+    "aws-amplify": "latest",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@aws-amplify/backend": "latest",
     "@aws-amplify/backend-cli": "latest",
+    "@types/aws-lambda": "^8.10.164",
+    "@types/web-push": "^3.6.4",
+    "aws-cdk-lib": "^2.265.0",
+    "constructs": "^10.8.1",
     "esbuild": "latest",
     "typescript": "latest"
   }

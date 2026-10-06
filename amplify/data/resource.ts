@@ -29,6 +29,9 @@ const schema = a.schema({
       shot: a.string(),
       // The latest quick reaction ({ by, text, at }) so the other player can see it pop up.
       reaction: a.string(),
+      // Each player's browser push subscription, so the notify function can tell them it's their turn.
+      hostPush: a.string(),
+      guestPush: a.string(),
       // Epoch seconds; DynamoDB deletes abandoned rooms after this time.
       expiresAt: a.integer().required(),
     })
