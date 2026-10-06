@@ -27,6 +27,8 @@ const schema = a.schema({
       seq: a.integer().required(),
       state: a.string().required(),
       shot: a.string(),
+      // The latest quick reaction ({ by, text, at }) so the other player can see it pop up.
+      reaction: a.string(),
       // Epoch seconds; DynamoDB deletes abandoned rooms after this time.
       expiresAt: a.integer().required(),
     })
