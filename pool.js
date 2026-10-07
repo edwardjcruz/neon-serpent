@@ -28,6 +28,10 @@
   const portraitQuery = matchMedia('(max-width: 760px) and (orientation: portrait)');
   const coarseQuery = matchMedia('(pointer: coarse)');
   let portrait = false;
+  // Phones get a full-screen play view once a game starts: no site menu or setup rows, the biggest table that fits,
+  // and controls pinned to the bottom (or the side in landscape).
+  const smallScreen = matchMedia('(max-width: 760px), (max-height: 500px)');
+  let focus = false;
 
   const clean = (value) => String(value || '').trim().replace(/[^a-zA-Z0-9 _-]/g, '').slice(0, 16);
   const names = () => {
@@ -83,12 +87,15 @@
     $('#pool-pull').classList.toggle('disabled', !canShoot());
     $$('[data-pool-mode]').forEach((button) => button.classList.toggle('active', button.dataset.poolMode === mode));
     $('#pool-levels').hidden = mode !== 'cpu';
+    const canReact = mode === 'online' && online?.room && online.room.status !== 'waiting';
+    $('#pool-react-toggle').hidden = !canReact; $('#pool-restart').hidden = mode === 'online'; if (!canReact) $('#pool-quick-reactions').hidden = true;
     $$('[data-pool-level]').forEach((button) => button.classList.toggle('active', button.dataset.poolLevel === cpuLevel));
     showOverlay(); renderRoom(); renderRecord();
   }
 
   function showOverlay() {
-    const overlay = $('#pool-overlay'), title = $('#pool-title'), message = $('#pool-message'), intro = $('#pool-intro-actions'), end = $('#pool-end-actions');
+    const overlay = $('#pool-overlay'), title = $('#pool-title'), message = $('#pool-message'), intro = $('#pool-intro-actions'), end = $('#pool-end-actions'), wait = $('#pool-wait-actions');
+    wait.hidden = true;
     if (state.winner !== null && !run) {
       overlay.hidden = false; intro.hidden = true; end.hidden = false;
       const won = state.winner === mySeat();
@@ -100,6 +107,7 @@
     } else if (mode === 'online' && online?.room?.status === 'waiting') {
       overlay.hidden = false; intro.hidden = true; end.hidden = true;
       title.textContent = 'ROOM OPEN'; message.textContent = `Send your opponent the invite link or room code ${online.code}. The match starts as soon as they join.`;
+      wait.hidden = false;
     } else if (overlay.dataset.intro === 'true') {
       overlay.hidden = false; intro.hidden = false; end.hidden = true;
       title.textContent = "RACK 'EM UP"; message.textContent = 'Sink your group, then call and sink the 8. Play the computer, a friend on this device, or open a private online room.';
@@ -458,7 +466,7 @@
     // Subscriptions can drop silently on mobile networks, so also check in every few seconds.
     online.poll = setInterval(() => refreshRoom(), 4000);
     renderAlertsButton();
-    setState(parse(room.state) || E.newRack(0));
+    setState(parse(room.state) || E.newRack(0)); setFocus(true);
   }
 
   function leaveRoom(reset = true) {
@@ -553,12 +561,24 @@
     });
   }
 
+  // ---------- full-screen play view (phones) ----------
+  function setFocus(on) {
+    focus = Boolean(on) && smallScreen.matches && !$('#pool-game').hidden;
+    document.body.classList.toggle('pool-focus', focus);
+    $('#pool-quick-reactions').hidden = true;
+    if (focus) scrollTo(0, 0);
+    applyOrientation();
+  }
+  smallScreen.addEventListener('change', () => { if (focus && !smallScreen.matches) setFocus(false); });
+  // Leaving the pool tab always restores the normal page.
+  $$('.arcade-tab').forEach((tab) => tab.addEventListener('click', () => { if (tab.dataset.game !== 'pool') setFocus(false); }));
+
   // ---------- modes ----------
   function begin(nextMode) {
     $('#pool-overlay').dataset.intro = 'false';
     if (nextMode === 'online') { if (mode === 'online' && online) { render(); return; } leaveRoom(true); stopCpu(); mode = 'online'; state = E.newRack(0); render(); $('#pool-name').focus(); $('#pool-lobby').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
     leaveRoom(true); stopCpu(); mode = nextMode; Sound?.unlock();
-    setState(E.newRack(0));
+    setState(E.newRack(0)); setFocus(true);
     track('mode_selected', {});
   }
   function nextRack() {
@@ -686,7 +706,10 @@
   $$('[data-pool-mode]').forEach((button) => button.addEventListener('click', () => { if (button.dataset.poolMode !== mode || $('#pool-overlay').dataset.intro === 'true') begin(button.dataset.poolMode); }));
   $$('[data-pool-level]').forEach((button) => button.addEventListener('click', () => { cpuLevel = button.dataset.poolLevel; store('neonPoolCpu', cpuLevel); track('difficulty_selected', {}); render(); }));
   $('#pool-again').addEventListener('click', nextRack);
-  $('#pool-change-mode').addEventListener('click', () => { $('#pool-overlay').dataset.intro = 'true'; state = E.newRack(0); stopCpu(); render(); });
+  $('#pool-change-mode').addEventListener('click', () => { $('#pool-overlay').dataset.intro = 'true'; state = E.newRack(0); stopCpu(); setFocus(false); render(); });
+  $('#pool-focus-toggle').addEventListener('click', () => setFocus(false));
+  $('#pool-overlay-copy').addEventListener('click', () => $('#pool-copy').click());
+  $('#pool-react-toggle').addEventListener('click', () => { const panel = $('#pool-quick-reactions'); panel.hidden = !panel.hidden; $('#pool-react-toggle').setAttribute('aria-expanded', String(!panel.hidden)); });
   $('#pool-restart').addEventListener('click', () => { if (mode !== 'online') { stopCpu(); setState(E.newRack(0, state.match)); } });
   $('#pool-mute').addEventListener('click', () => { Sound?.setMuted(!Sound.muted); renderMute(); if (!Sound?.muted) Sound?.turn(); });
   function renderMute() { const button = $('#pool-mute'); button.textContent = Sound?.muted ? '🔇' : '🔊'; button.setAttribute('aria-label', Sound?.muted ? 'Turn sound on' : 'Turn sound off'); }
@@ -695,7 +718,7 @@
   $('#pool-create').addEventListener('click', createRoom);
   $('#pool-join').addEventListener('click', () => joinRoom());
   $('#pool-code').addEventListener('keydown', (event) => { if (event.key === 'Enter') joinRoom(); });
-  $('#pool-leave').addEventListener('click', () => { leaveRoom(true); mode = 'online'; state = E.newRack(0); render(); $('#pool-notice').textContent = 'YOU LEFT THE ROOM. USE THE CODE TO REJOIN.'; });
+  $('#pool-leave').addEventListener('click', () => { setFocus(false); leaveRoom(true); mode = 'online'; state = E.newRack(0); render(); $('#pool-notice').textContent = 'YOU LEFT THE ROOM. USE THE CODE TO REJOIN.'; });
   $('#pool-copy').addEventListener('click', async () => {
     const link = inviteLink(online.code);
     try { await navigator.clipboard.writeText(link); $('#pool-copy').textContent = 'LINK COPIED'; } catch { prompt('Copy this invite link:', link); }
@@ -706,7 +729,11 @@
     const result = await Notification.requestPermission(); renderAlertsButton(); track('alerts_permission', { result });
   });
   const reactions = $('#pool-reactions');
-  REACTIONS.forEach((text) => { const button = document.createElement('button'); button.textContent = text; button.addEventListener('click', () => react(text)); reactions.append(button); });
+  const quickReactions = $('#pool-quick-reactions');
+  REACTIONS.forEach((text) => {
+    const button = document.createElement('button'); button.textContent = text; button.addEventListener('click', () => react(text)); reactions.append(button);
+    const quick = button.cloneNode(true); quick.addEventListener('click', () => { react(text); quickReactions.hidden = true; }); quickReactions.append(quick);
+  });
 
   $('#pool-name').value = stored('neonPoolName', '');
   setConnection('OFFLINE', false);
