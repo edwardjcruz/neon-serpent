@@ -1,4 +1,4 @@
-// Computer opponent for Neon 8-Ball. It lines up pot attempts (ghost-ball aiming at every pocket), plays each one
+// Computer opponent for Neon Cue. It lines up pot attempts (ghost-ball aiming at every pocket), plays each one
 // through the real physics, scores what happens, and then shoots its favourite with a level-dependent wobble.
 globalThis.NeonPoolAI = (() => {
   const E = globalThis.NeonPoolEngine;

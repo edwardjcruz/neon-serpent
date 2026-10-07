@@ -378,7 +378,7 @@
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     const options = { body, tag: `pool-${online?.code || 'game'}`, icon: 'pool-icon-192.png' };
     // Some phones only allow notifications through the service worker.
-    navigator.serviceWorker?.getRegistration?.().then((registration) => registration ? registration.showNotification('Neon 8-Ball', options) : new Notification('Neon 8-Ball', options)).catch(() => { try { new Notification('Neon 8-Ball', options); } catch {} });
+    navigator.serviceWorker?.getRegistration?.().then((registration) => registration ? registration.showNotification('Neon Cue', options) : new Notification('Neon Cue', options)).catch(() => { try { new Notification('Neon Cue', options); } catch {} });
   }
   function yourTurn(message) { Sound?.turn(); notify(message); }
   function renderAlertsButton() {
