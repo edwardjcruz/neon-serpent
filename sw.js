@@ -1,11 +1,11 @@
-// Neon Serpent service worker: shows Neon 8-Ball "your turn" push notifications and opens the room when tapped.
+// Neon Serpent service worker: shows Neon Cue "your turn" push notifications and opens the room when tapped.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data?.text() }; }
-  const title = data.title || 'Neon 8-Ball', options = { body: data.body || 'Something happened at your table.', tag: data.tag || 'pool', renotify: true, icon: 'pool-icon-192.png', badge: 'pool-icon-192.png', data: { url: data.url || '/' } };
+  const title = data.title || 'Neon Cue', options = { body: data.body || 'Something happened at your table.', tag: data.tag || 'pool', renotify: true, icon: 'pool-icon-192.png', badge: 'pool-icon-192.png', data: { url: data.url || '/' } };
   event.waitUntil((async () => {
     // Browsers require every push to show a notification. If the player is already looking at the game,
     // show it silently and clear it straight away — the page itself plays the turn sound.

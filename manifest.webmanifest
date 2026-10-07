@@ -1,7 +1,7 @@
 {
   "name": "Neon Serpent Arcade",
   "short_name": "Neon Arcade",
-  "description": "Neon arcade games, including 8-ball pool against the computer or friends online.",
+  "description": "Neon arcade games, including Neon Cue: 8-ball pool against the computer or friends online.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

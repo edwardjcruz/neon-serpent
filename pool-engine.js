@@ -1,4 +1,4 @@
-// Neon 8-Ball rules and physics. Pure functions with a fixed timestep and only + − × ÷ √, so every
+// Neon Cue rules and physics. Pure functions with a fixed timestep and only + − × ÷ √, so every
 // browser that replays the same shot from the same table gets the same result — online play relies on it.
 globalThis.NeonPoolEngine = (() => {
   const W = 800, H = 440, L = 40, R = 760, T = 40, B = 400, BR = 9;
