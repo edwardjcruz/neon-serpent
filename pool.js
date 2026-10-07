@@ -92,7 +92,7 @@
     const canReact = mode === 'online' && online?.room && online.room.status !== 'waiting';
     $('#pool-react-toggle').hidden = !canReact; $('#pool-restart').hidden = mode === 'online'; if (!canReact) $('#pool-quick-reactions').hidden = true;
     $$('[data-pool-level]').forEach((button) => button.classList.toggle('active', button.dataset.poolLevel === cpuLevel));
-    showOverlay(); renderRoom(); renderRecord();
+    showOverlay(); renderRoom(); renderRecord(); renderAlertsButton();
   }
 
   function showOverlay() {
@@ -403,7 +403,11 @@
   const installed = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   function renderAlertsButton() {
-    const button = $('#pool-alerts'), hint = $('#pool-alerts-hint');
+    const button = $('#pool-alerts'), hint = $('#pool-alerts-hint'), quick = $('#pool-alerts-quick');
+    const inGame = mode === 'online' && Boolean(online?.room);
+    const alertsOn = pushSupported && Notification.permission === 'granted' && Boolean(online?.pushSaved);
+    const canOffer = pushSupported ? Notification.permission !== 'denied' && !alertsOn : isIos && !installed;
+    quick.hidden = !(inGame && canOffer);
     hint.hidden = true;
     if (!pushSupported) {
       button.hidden = true;
@@ -779,6 +783,11 @@
     const link = inviteLink(online.code);
     try { await navigator.clipboard.writeText(link); $('#pool-copy').textContent = 'LINK COPIED'; } catch { prompt('Copy this invite link:', link); }
     setTimeout(() => { $('#pool-copy').textContent = 'COPY INVITE LINK'; }, 1800);
+  });
+  // The 🔔 in the full-screen top bar does the same as the room panel's alerts button (which that view hides).
+  $('#pool-alerts-quick').addEventListener('click', () => {
+    if (!pushSupported) { showToast('IPHONE: SHARE → ADD TO HOME SCREEN, OPEN NEON ARCADE, THEN REJOIN FOR TURN ALERTS', true); return; }
+    $('#pool-alerts').click();
   });
   $('#pool-alerts').addEventListener('click', async () => {
     if (!('Notification' in window) || Notification.permission === 'denied') return;
