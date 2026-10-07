@@ -1,4 +1,4 @@
-// Neon 8-Ball sound effects, synthesised with Web Audio so there are no files to load.
+// Neon Cue sound effects, synthesised with Web Audio so there are no files to load.
 window.NeonPoolSound = (() => {
   let audio = null, noise = null, muted = false;
   try { muted = localStorage.neonPoolMuted === '1'; } catch {}
