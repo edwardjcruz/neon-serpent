@@ -176,9 +176,15 @@
   }
 
   function drawStick(cue, dx, dy, held) {
-    const back = E.BR + 6 + power() * 46;
+    const back = E.BR + 6 + power() * 80;
     ctx.lineCap = 'round'; ctx.lineWidth = held ? 8 : 6; ctx.strokeStyle = held ? '#f6dca8' : '#e8c690'; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = held ? 14 : 0;
     ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 250), cue.y - dy * (back + 250)); ctx.stroke();
+    if (pull) {
+      const lx = cue.x - dx * (back + 40) + dy * 22, ly = cue.y - dy * (back + 40) - dx * 22;
+      ctx.save(); ctx.translate(lx, ly); if (portrait) ctx.rotate(Math.PI / 2);
+      ctx.fillStyle = pull.power < .05 ? '#f7faee99' : '#cffb4b'; ctx.font = '700 13px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(pull.power < .05 ? 'CANCEL' : `${Math.round(pull.power * 100)}%`, 0, 0); ctx.restore();
+    }
     ctx.shadowBlur = 0; ctx.lineWidth = 6; ctx.strokeStyle = '#68d8ff'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 8), cue.y - dy * (back + 8)); ctx.stroke(); ctx.lineCap = 'butt';
   }
 
@@ -606,7 +612,9 @@
   function pocketAt(point) { const index = DRAWN_POCKETS.findIndex(([x, y]) => Math.hypot(point.x - x, point.y - y) < 30); return index < 0 ? null : index; }
   // Touch: hold anywhere (the stick is the natural spot) and swing it around the cue ball. The aim turns by however far
   // the finger circles the ball, so it never jumps on touch-down and the finger stays behind the shot, off the aim line.
-  let fingerAngle = 0, activePointer = null;
+  // Dragging straight back along the stick instead loads power (aim locked); release to shoot, slide back in to cancel.
+  let fingerAngle = 0, activePointer = null, gesture = null;
+  const FULL_PULL = 150; // table units of pull for 100% power
   const angleFromCue = (point) => { const cue = cuePosition(); return { angle: Math.atan2(point.y - cue.y, point.x - cue.x), distance: Math.hypot(point.x - cue.x, point.y - cue.y) }; };
   canvas.addEventListener('pointerdown', (event) => {
     if (!canShoot()) return;
@@ -617,13 +625,30 @@
     activePointer = event.pointerId; canvas.setPointerCapture(event.pointerId);
     if (state.ballInHand && place && Math.hypot(point.x - place.x, point.y - place.y) < E.BR * 3) { dragging = 'cue'; return; }
     if (event.pointerType === 'mouse') { dragging = 'aim'; aimAt(point); return; }
-    dragging = 'stick'; fingerAngle = angleFromCue(point).angle; draw();
+    dragging = 'stick'; fingerAngle = angleFromCue(point).angle; gesture = { start: point, mode: null }; draw();
   });
+  // The first ~10 units of movement decide the gesture: mostly straight back from the ball, starting on the stick's
+  // side of it, means pull; anything else is a swing. It then stays that way until the finger lifts.
+  function decideGesture(point) {
+    const dx = point.x - gesture.start.x, dy = point.y - gesture.start.y;
+    if (Math.hypot(dx, dy) < 10) return false;
+    const cue = cuePosition(), ux = -Math.cos(angle), uy = -Math.sin(angle);
+    const along = dx * ux + dy * uy, across = Math.abs(dx * uy - dy * ux);
+    const sx = gesture.start.x - cue.x, sy = gesture.start.y - cue.y, behind = (sx * ux + sy * uy) / (Math.hypot(sx, sy) || 1) > .5;
+    gesture.mode = behind && along > 0 && along > across * 1.4 ? 'pull' : 'swing';
+    if (gesture.mode === 'pull') { gesture.ux = ux; gesture.uy = uy; gesture.from = sx * ux + sy * uy; Sound?.unlock(); setPull(0); }
+    return true;
+  }
   canvas.addEventListener('pointermove', (event) => {
     if (!canShoot() || (dragging && event.pointerId !== activePointer)) return;
     const point = toTable(event);
     if (dragging === 'cue') { if (E.canPlaceCue(state, point.x, point.y)) { place = point; draw(); } return; }
     if (dragging === 'stick') {
+      if (!gesture.mode && !decideGesture(point)) return;
+      if (gesture.mode === 'pull') {
+        const cue = cuePosition(), along = (point.x - cue.x) * gesture.ux + (point.y - cue.y) * gesture.uy;
+        setPull(Math.max(0, Math.min(1, (along - gesture.from) / FULL_PULL))); return;
+      }
       const { angle: now, distance } = angleFromCue(point);
       // Ignore tiny moves right over the cue ball, and cap each step so one glitchy touch sample can't whip the stick.
       if (distance > E.BR * 2.5) { angle += Math.max(-.3, Math.min(.3, Math.atan2(Math.sin(now - fingerAngle), Math.cos(now - fingerAngle)))); draw(); }
@@ -633,7 +658,10 @@
   });
   ['pointerup', 'pointercancel'].forEach((name) => canvas.addEventListener(name, (event) => {
     if (event.pointerId !== activePointer) return;
-    const wasStick = dragging === 'stick'; dragging = null; activePointer = null; if (wasStick) draw();
+    const wasStick = dragging === 'stick', pulled = gesture?.mode === 'pull' ? pull?.power || 0 : null;
+    dragging = null; activePointer = null; gesture = null;
+    if (pulled !== null) { if (name === 'pointerup' && pulled >= .05) { $('#pool-power').value = Math.round(pulled * 100); shoot().finally(() => setPull(null)); } else setPull(null); return; }
+    if (wasStick) draw();
   }));
   $('#pool-power').addEventListener('input', draw);
 
