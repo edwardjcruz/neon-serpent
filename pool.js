@@ -642,11 +642,18 @@
     if (shooterOnEight()) { const pocket = pocketAt(point); if (pocket !== null) { call = pocket; callPicked = true; render(); return; } }
     activePointer = event.pointerId; canvas.setPointerCapture(event.pointerId);
     if (state.ballInHand && place && Math.hypot(point.x - place.x, point.y - place.y) < E.BR * 3) { dragging = 'cue'; return; }
-    if (event.pointerType === 'mouse') { dragging = 'aim'; aimAt(point); return; }
+    // Mouse: the aim already follows the pointer, so pressing locks it and dragging back (away from the target)
+    // draws the stick back; release to shoot. A click without a pull does nothing.
+    if (event.pointerType === 'mouse') { dragging = 'stick'; startPull(point); canvas.style.cursor = 'grabbing'; return; }
     dragging = 'stick'; fingerAngle = angleFromCue(point).angle; gesture = { start: point, mode: null }; draw();
   });
   // The first ~10 units of movement decide the gesture: mostly straight back from the ball, starting on the stick's
   // side of it, means pull; anything else is a swing. It then stays that way until the finger lifts.
+  function startPull(point) {
+    const cue = cuePosition(), ux = -Math.cos(angle), uy = -Math.sin(angle);
+    gesture = { start: point, mode: 'pull', ux, uy, from: (point.x - cue.x) * ux + (point.y - cue.y) * uy };
+    Sound?.unlock(); setPull(0);
+  }
   function decideGesture(point) {
     const dx = point.x - gesture.start.x, dy = point.y - gesture.start.y;
     if (Math.hypot(dx, dy) < 10) return false;
@@ -676,6 +683,7 @@
   });
   ['pointerup', 'pointercancel'].forEach((name) => canvas.addEventListener(name, (event) => {
     if (event.pointerId !== activePointer) return;
+    canvas.style.cursor = '';
     const wasStick = dragging === 'stick', pulled = gesture?.mode === 'pull' ? pull?.power || 0 : null;
     dragging = null; activePointer = null; gesture = null;
     if (pulled !== null) { if (name === 'pointerup' && pulled >= .05) { $('#pool-power').value = Math.round(pulled * 100); shoot().finally(() => setPull(null)); } else setPull(null); return; }
