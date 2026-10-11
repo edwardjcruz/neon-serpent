@@ -1,6 +1,6 @@
 (() => {
   const track = (event, game, details = {}) => window.trackGameEvent?.(event, game, details);
-  const games = { snake: 'snake', mines: 'minesweeper', breakout: 'breakout', shooter: 'bubble_shooter', flappy: 'flappy_serpent', stack: 'neon_stack', tower: 'neon_tower', storm: 'neon_storm', pong: 'neon_pong', pool: 'neon_cue', lineup: 'line_up' };
+  const games = { snake: 'snake', mines: 'minesweeper', breakout: 'breakout', shooter: 'bubble_shooter', flappy: 'flappy_serpent', stack: 'neon_stack', tower: 'neon_tower', storm: 'neon_storm', pong: 'neon_pong', pool: 'neon_cue', lineup: 'line_up', gomoku: 'gomoku' };
   const started = new Set();
   document.querySelectorAll('.arcade-tab').forEach((tab) => tab.addEventListener('click', () => track('game_selected', games[tab.dataset.game])));
   function start(game, details = {}) { if (!started.has(game)) { started.add(game); track('game_started', game, details); } }
