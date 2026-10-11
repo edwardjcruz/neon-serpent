@@ -135,9 +135,21 @@
       const o = orientation(b), dx = b.x - o.x, dy = b.y - o.y, distance = Math.hypot(dx, dy);
       // Big jumps are placements (ball in hand, re-spots), not rolling.
       if (distance > .01 && distance < 60) { const kx = -dy / distance, ky = dx / distance, angle = distance / E.BR; o.p = rotate(o.p, kx, ky, angle); o.a = rotate(o.a, kx, ky, angle); }
+      else if (!b.vx && !b.vy) settle(o);
       o.x = b.x; o.y = b.y;
     }
   }
+  // A ball at rest turns whichever number spot is nearer the top to face up (which also lays its stripe flat), so
+  // every ball is easy to read between shots. Returns true while it's still turning.
+  function settle(o) {
+    const up = o.p[2] >= 0 ? o.p : o.p.map((c) => -c), tilt = Math.acos(Math.min(1, up[2]));
+    if (tilt < .02) return false;
+    const length = Math.hypot(up[0], up[1]), kx = length ? up[1] / length : 1, ky = length ? -up[0] / length : 0; // up × z
+    const angle = Math.min(tilt, .14);
+    o.p = rotate(o.p, kx, ky, angle); o.a = rotate(o.a, kx, ky, angle);
+    return true;
+  }
+  const settleAll = (balls) => balls.reduce((turning, b) => (!b.in && b.n !== 0 && settle(orientation(b))) || turning, false);
   function syncSpins(balls) { for (const b of balls) { const o = orientation(b); o.x = b.x; o.y = b.y; } }
 
   function drawBall(b, x = b.x, y = b.y, scale = 1, o = orientation(b)) {
@@ -157,11 +169,11 @@
       // Number spots on both sides of the ball, foreshortened as they turn away.
       for (const v of [o.p, o.p.map((c) => -c)]) {
         if (v[2] <= .05) continue;
-        const sx = x + v[0] * r * .92, sy = y + v[1] * r * .92;
-        ctx.beginPath(); ctx.ellipse(sx, sy, r * .46, r * .46 * Math.max(.12, v[2]), Math.atan2(v[1], v[0]) + Math.PI / 2, 0, Math.PI * 2); ctx.fillStyle = '#f7faee'; ctx.fill();
-        if (scale > .6 && v[2] > .55) {
+        const sx = x + v[0] * r * .85, sy = y + v[1] * r * .85;
+        ctx.beginPath(); ctx.ellipse(sx, sy, r * .58, r * .58 * Math.max(.12, v[2]), Math.atan2(v[1], v[0]) + Math.PI / 2, 0, Math.PI * 2); ctx.fillStyle = '#f7faee'; ctx.fill();
+        if (scale > .6 && v[2] > .4) {
           ctx.save(); ctx.translate(sx, sy); if (portrait) ctx.rotate(Math.PI / 2);
-          ctx.globalAlpha = Math.min(1, (v[2] - .55) * 3); ctx.fillStyle = '#142226'; ctx.font = '700 7px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.n, 0, .5); ctx.restore();
+          ctx.globalAlpha = Math.min(1, (v[2] - .4) * 3); ctx.fillStyle = '#142226'; ctx.font = `800 ${b.n > 9 ? 8 : 9.5}px "Space Grotesk", sans-serif`; if (b.n > 9) ctx.scale(.86, 1); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.n, 0, .5); ctx.restore();
         }
       }
     }
@@ -291,10 +303,10 @@
     ctx.globalAlpha = alpha; ctx.fillStyle = banner.color; ctx.font = `700 ${size}px "Space Grotesk", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.shadowColor = banner.color; ctx.shadowBlur = 12; ctx.fillText(banner.text, w / 2, h / 2 + 1); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
   }
-  // Keeps redrawing while a banner or sinking ball is still animating between shots.
+  // Keeps redrawing while a banner, sinking ball or settling ball is still animating between shots.
   function startFx() {
     if (fxFrame) return;
-    const loop = () => { fxFrame = 0; if (run) return; draw(); if (banner || sinking.length) fxFrame = requestAnimationFrame(loop); };
+    const loop = () => { fxFrame = 0; if (run) return; const turning = settleAll(state.balls); draw(); if (banner || sinking.length || turning) fxFrame = requestAnimationFrame(loop); };
     fxFrame = requestAnimationFrame(loop);
   }
 
@@ -326,7 +338,7 @@
     roll(run.table.balls); playSounds();
     if (done) {
       const before = run.before, next = final || E.resolve(run);
-      run = null; final = null; setState(next); afterShot(before, next);
+      run = null; final = null; setState(next); afterShot(before, next); startFx();
       if (online?.pending) { const room = online.pending; online.pending = null; handleRoom(room); }
       return;
     }
