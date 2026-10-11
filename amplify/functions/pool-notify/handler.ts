@@ -23,7 +23,7 @@ function messages(before: Room, after: Room): Array<{ seat: number; push: Push }
   const say = (text = '') => text.replace(/PLAYER ([12])/g, (_, seat) => names[Number(seat) - 1]);
   const out: Array<{ seat: number; push: Push }> = [];
 
-  if (!before.guestId && after.guestId) out.push({ seat: 0, push: { title: `${names[1]} joined your table 🎱`, body: 'Your break — tap to play.' } });
+  if (!before.guestId && after.guestId) out.push({ seat: 0, push: { title: `${names[1]} joined your table ⚪`, body: 'Your break — tap to play.' } });
 
   const reaction = parse<{ by: number; text: string }>(after.reaction);
   if (reaction && after.reaction !== before.reaction && (reaction.by === 0 || reaction.by === 1)) {
@@ -39,10 +39,10 @@ function messages(before: Room, after: Room): Array<{ seat: number; push: Push }
       else if (table.turn === other) {
         const foul = table.message?.match(/^FOUL: (.+?) —/);
         const body = foul ? `${names[shot.by]} fouled (${foul[1].toLowerCase()}) — you have ball in hand.` : `${names[shot.by]} missed — you're up.`;
-        out.push({ seat: other, push: { title: 'Your turn 🎱', body } });
+        out.push({ seat: other, push: { title: 'Your turn ⚪', body } });
       }
     } else if (!after.shot && table.isBreak && after.status === 'playing' && before.status === 'finished') {
-      out.push({ seat: table.turn, push: { title: 'Rematch racked 🎱', body: 'Your break — tap to play.' } });
+      out.push({ seat: table.turn, push: { title: 'Rematch racked ⚪', body: 'Your break — tap to play.' } });
     }
   }
   return out;
