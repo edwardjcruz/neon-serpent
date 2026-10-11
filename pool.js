@@ -97,7 +97,7 @@
     const overlay = $('#pool-overlay'), title = $('#pool-title'), message = $('#pool-message'), intro = $('#pool-intro-actions'), end = $('#pool-end-actions'), wait = $('#pool-wait-actions');
     wait.hidden = true;
     if (state.winner !== null && !run) {
-      overlay.hidden = false; intro.hidden = true; end.hidden = false;
+      overlay.hidden = false; intro.hidden = true; end.hidden = false; $('#pool-eyebrow').textContent = 'RACK OVER';
       const won = state.winner === mySeat();
       title.textContent = mode === 'local' ? `${names()[state.winner]} WINS` : won ? 'YOU WIN!' : mode === 'cpu' ? 'CPU WINS' : 'YOU LOSE';
       const match = state.match || [0, 0];
@@ -105,12 +105,12 @@
       $('#pool-again').innerHTML = mode === 'online' ? 'REMATCH <b>→</b>' : 'NEXT RACK <b>→</b>';
       $('#pool-change-mode').hidden = mode === 'online';
     } else if (mode === 'online' && online?.room?.status === 'waiting') {
-      overlay.hidden = false; intro.hidden = true; end.hidden = true;
+      overlay.hidden = false; intro.hidden = true; end.hidden = true; $('#pool-eyebrow').textContent = 'WAITING FOR A PLAYER';
       title.textContent = online.invitee ? `REMATCH VS ${online.invitee}` : 'ROOM OPEN';
       message.textContent = `Send ${online.invitee || 'your opponent'} the invite link or room code ${online.code}. The match starts as soon as they join.`;
       wait.hidden = false;
     } else if (overlay.dataset.intro === 'true') {
-      overlay.hidden = false; intro.hidden = false; end.hidden = true;
+      overlay.hidden = false; intro.hidden = false; end.hidden = true; $('#pool-eyebrow').textContent = 'THE TABLE IS RACKED';
       title.textContent = "RACK 'EM UP"; message.textContent = 'Sink your group, then call and sink the 8. Play the computer, a friend on this device, or open a private online room.';
     } else overlay.hidden = true;
   }
@@ -513,7 +513,7 @@
     for (let attempt = 0; attempt < 4; attempt += 1) {
       const code = roomCode();
       try {
-        const { data, errors } = await rooms().create({ code, hostId: me, hostName: name, status: 'waiting', seq: 1, state: JSON.stringify(E.newRack(0)), expiresAt: expiry() });
+        const { data, errors } = await rooms().create({ code, game: 'pool', hostId: me, hostName: name, status: 'waiting', seq: 1, state: JSON.stringify(E.newRack(0)), expiresAt: expiry() });
         failIf(errors);
         notice.textContent = invitee ? `ROOM READY. SEND ${invitee.name} THE INVITE.` : 'ROOM READY. SEND THE INVITE LINK.';
         enterRoom(data, 0); online.invitee = invitee?.name || null; render(); track('room_created', { rematch: Boolean(invitee) }); return;
@@ -530,6 +530,8 @@
     try {
       const room = await fetchRoom(code);
       if (!room) { notice.textContent = `ROOM ${code} NOT FOUND OR EXPIRED.`; return; }
+      // Pool and Line Up share room codes; send a Line Up code to the Line Up board.
+      if (room.game && room.game !== 'pool') { location.search = `?lineup=${code}`; return; }
       if (room.hostId === me) { notice.textContent = 'BACK IN YOUR ROOM.'; enterRoom(room, 0); return; }
       if (room.guestId === me) { notice.textContent = 'BACK IN THE MATCH.'; enterRoom(room, 1); return; }
       if (room.guestId) { notice.textContent = 'THAT ROOM ALREADY HAS TWO PLAYERS.'; return; }
