@@ -2,3 +2,5 @@
 node_modules/
 dist/
 amplify_outputs.json
+.secrets/
+.amplify/

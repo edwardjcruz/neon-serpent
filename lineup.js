@@ -203,11 +203,22 @@
     if (!document.hidden) return;
     clearInterval(titleTimer); let on = false;
     titleTimer = setInterval(() => { on = !on; document.title = on ? `🟢 ${body}` : baseTitle; }, 900);
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    // With push on, the server sends the system notification; the page only flashes the title and plays a sound.
+    if (!('Notification' in window) || Notification.permission !== 'granted' || online?.pushSaved) return;
     const options = { body, tag: `lineup-${online?.code || 'game'}` };
     navigator.serviceWorker?.getRegistration?.().then((registration) => registration ? registration.showNotification('Line Up', options) : new Notification('Line Up', options)).catch(() => { try { new Notification('Line Up', options); } catch {} });
   }
   function yourTurn(message) { Sound?.turn(); notify(message); }
+  // Save this browser's push subscription on our seat so pool-notify can tell us it's our move with the game closed.
+  async function savePushSubscription() {
+    const Push = window.NeonPush;
+    if (!Push?.supported || Notification.permission !== 'granted' || !online?.room) return;
+    try {
+      const field = online.seat === 0 ? 'hostPush' : 'guestPush', value = await Push.subscription();
+      if (online.room[field] !== value) { const { errors } = await rooms().update({ code: online.code, [field]: value }); failIf(errors); online.room[field] = value; }
+      online.pushSaved = true; render();
+    } catch (error) { $('#lu-notice').textContent = 'COULD NOT TURN ON ALERTS ON THIS BROWSER.'; console.warn('push subscribe failed', error); }
+  }
 
   // ---------- online rooms (shared PoolRoom table, marked game: 'lineup') ----------
   const rooms = () => window.neonDataClient?.models?.PoolRoom;
@@ -269,7 +280,7 @@
     try { online.sub = rooms().onUpdate({ filter: { code: { eq: room.code } } }).subscribe({ next: handleRoom, error: () => setConnection('POLLING', false) }); setConnection('LIVE', true); }
     catch { setConnection('POLLING', false); }
     online.poll = setInterval(() => refreshRoom(), 4000);
-    state = parse(room.state) || G.newGame(0); render();
+    state = parse(room.state) || G.newGame(0); render(); savePushSubscription();
   }
   function leaveRoom(reset = true) {
     if (online) { online.sub?.unsubscribe?.(); clearInterval(online.poll); }
@@ -351,8 +362,10 @@
       role.textContent = [seat === online.seat ? 'YOU' : '', !over() && name && state.turn === seat && online.room.status !== 'waiting' ? 'TO MOVE' : ''].filter(Boolean).join(' · ') || (seat === 0 ? 'HOST' : 'GUEST');
       item.append(who, role); seats.append(item);
     });
-    const alerts = $('#lu-alerts'); alerts.hidden = !('Notification' in window);
-    if (!alerts.hidden) alerts.textContent = Notification.permission === 'granted' ? '🔔 TURN ALERTS ON' : Notification.permission === 'denied' ? '🔕 ALERTS BLOCKED IN BROWSER' : '🔔 TURN ON TURN ALERTS';
+    const alerts = $('#lu-alerts'), hint = $('#lu-alerts-hint'), Push = window.NeonPush, supported = Boolean(Push?.supported);
+    alerts.hidden = !supported; hint.hidden = !Push?.needsHomeScreen;
+    if (Push?.needsHomeScreen) hint.textContent = 'TURN ALERTS ON IPHONE: TAP SHARE → ADD TO HOME SCREEN, THEN OPEN NEON ARCADE FROM YOUR HOME SCREEN AND REJOIN THIS ROOM.';
+    if (supported) { const on = Notification.permission === 'granted' && online.pushSaved; alerts.textContent = on ? '🔔 TURN ALERTS ON — WE’LL PING YOU' : Notification.permission === 'denied' ? '🔕 ALERTS BLOCKED IN BROWSER SETTINGS' : '🔔 ALERT ME WHEN IT’S MY MOVE'; alerts.disabled = on || Notification.permission === 'denied'; }
   }
 
   // ---------- modes ----------
@@ -400,7 +413,12 @@
     setTimeout(() => { $('#lu-copy').textContent = 'COPY INVITE LINK'; }, 1800);
   }
   $('#lu-copy').addEventListener('click', share); $('#lu-overlay-copy').addEventListener('click', share);
-  $('#lu-alerts').addEventListener('click', async () => { if ('Notification' in window && Notification.permission === 'default') { await Notification.requestPermission(); render(); } });
+  $('#lu-alerts').addEventListener('click', async () => {
+    if (!('Notification' in window) || Notification.permission === 'denied') return;
+    const result = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    track('alerts_permission', { result });
+    if (result === 'granted') await savePushSubscription(); else render();
+  });
   REACTIONS.forEach((text) => { const button = document.createElement('button'); button.textContent = text; button.addEventListener('click', () => react(text)); $('#lu-reactions').append(button); });
 
   $('#lu-name').value = stored('neonPoolName', '');

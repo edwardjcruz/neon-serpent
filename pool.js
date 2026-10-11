@@ -91,7 +91,7 @@
     const canReact = mode === 'online' && online?.room && online.room.status !== 'waiting';
     $('#pool-react-toggle').hidden = !canReact; $('#pool-restart').hidden = mode === 'online'; if (!canReact) $('#pool-quick-reactions').hidden = true;
     $$('[data-pool-level]').forEach((button) => button.classList.toggle('active', button.dataset.poolLevel === cpuLevel));
-    showOverlay(); renderRoom(); renderRecord();
+    showOverlay(); renderRoom(); renderRecord(); renderAlertsButton();
   }
 
   function showOverlay() {
@@ -436,16 +436,39 @@
   function notify(body) {
     if (!document.hidden) return;
     flashTitle('⚪ ' + body.split('.')[0]);
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    // With push on, the server sends the system notification; the page only flashes the title and plays a sound.
+    if (!('Notification' in window) || Notification.permission !== 'granted' || online?.pushSaved) return;
     const options = { body, tag: `pool-${online?.code || 'game'}`, icon: 'pool-icon-192.png' };
     // Some phones only allow notifications through the service worker.
     navigator.serviceWorker?.getRegistration?.().then((registration) => registration ? registration.showNotification('Neon Cue', options) : new Notification('Neon Cue', options)).catch(() => { try { new Notification('Neon Cue', options); } catch {} });
   }
   function yourTurn(message) { Sound?.turn(); notify(message); }
+  const Push = window.NeonPush, pushSupported = Boolean(Push?.supported), isIos = Boolean(Push?.isIos), installed = Boolean(Push?.installed);
   function renderAlertsButton() {
-    const button = $('#pool-alerts'), supported = 'Notification' in window;
-    button.hidden = !supported;
-    if (supported) button.textContent = Notification.permission === 'granted' ? '🔔 TURN ALERTS ON' : Notification.permission === 'denied' ? '🔕 ALERTS BLOCKED IN BROWSER' : '🔔 TURN ON TURN ALERTS';
+    const button = $('#pool-alerts'), hint = $('#pool-alerts-hint'), quick = $('#pool-alerts-quick');
+    const inGame = mode === 'online' && Boolean(online?.room);
+    const alertsOn = pushSupported && Notification.permission === 'granted' && Boolean(online?.pushSaved);
+    const canOffer = pushSupported ? Notification.permission !== 'denied' && !alertsOn : isIos && !installed;
+    quick.hidden = !(inGame && canOffer);
+    hint.hidden = true;
+    if (!pushSupported) {
+      button.hidden = true;
+      if (isIos && !installed) { hint.hidden = false; hint.textContent = 'TURN ALERTS ON IPHONE: TAP SHARE → ADD TO HOME SCREEN, THEN OPEN NEON ARCADE FROM YOUR HOME SCREEN AND REJOIN THIS ROOM.'; }
+      return;
+    }
+    button.hidden = false;
+    const on = Notification.permission === 'granted' && online?.pushSaved;
+    button.textContent = on ? '🔔 TURN ALERTS ON — WE’LL PING YOU' : Notification.permission === 'denied' ? '🔕 ALERTS BLOCKED IN BROWSER SETTINGS' : '🔔 ALERT ME WHEN IT’S MY TURN';
+    button.disabled = on || Notification.permission === 'denied';
+  }
+  // Subscribe this browser to push and store the subscription on our seat, so pool-notify can reach us when the game is closed.
+  async function savePushSubscription() {
+    if (!pushSupported || Notification.permission !== 'granted' || !online?.room) return;
+    try {
+      const field = online.seat === 0 ? 'hostPush' : 'guestPush', value = await Push.subscription();
+      if (online.room[field] !== value) { const { errors } = await rooms().update({ code: online.code, [field]: value }); failIf(errors); online.room[field] = value; }
+      online.pushSaved = true; renderAlertsButton();
+    } catch (error) { $('#pool-notice').textContent = 'COULD NOT TURN ON ALERTS ON THIS BROWSER.'; console.warn('push subscribe failed', error); }
   }
 
   // ---------- online rooms ----------
@@ -524,7 +547,7 @@
     } catch { setConnection('POLLING', false); }
     // Subscriptions can drop silently on mobile networks, so also check in every few seconds.
     online.poll = setInterval(() => refreshRoom(), 4000);
-    renderAlertsButton();
+    renderAlertsButton(); savePushSubscription();
     setState(parse(room.state) || E.newRack(0)); setFocus(true);
   }
 
@@ -824,9 +847,16 @@
     try { await navigator.clipboard.writeText(link); $('#pool-copy').textContent = 'LINK COPIED'; } catch { prompt('Copy this invite link:', link); }
     setTimeout(() => { $('#pool-copy').textContent = 'COPY INVITE LINK'; }, 1800);
   });
+  // The 🔔 in the full-screen top bar does the same as the room panel's alerts button (which that view hides).
+  $('#pool-alerts-quick').addEventListener('click', () => {
+    if (!pushSupported) { showToast('IPHONE: SHARE → ADD TO HOME SCREEN, OPEN NEON ARCADE, THEN REJOIN FOR TURN ALERTS', true); return; }
+    $('#pool-alerts').click();
+  });
   $('#pool-alerts').addEventListener('click', async () => {
-    if (!('Notification' in window) || Notification.permission !== 'default') return;
-    const result = await Notification.requestPermission(); renderAlertsButton(); track('alerts_permission', { result });
+    if (!('Notification' in window) || Notification.permission === 'denied') return;
+    const result = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    track('alerts_permission', { result });
+    if (result === 'granted') await savePushSubscription(); else renderAlertsButton();
   });
   const reactions = $('#pool-reactions');
   const quickReactions = $('#pool-quick-reactions');
