@@ -1,0 +1,23 @@
+// Things that are fun to draw and fair to guess. Lives only on the server so the word never reaches guessers.
+export const WORDS = [
+  'apple', 'banana', 'pizza', 'burger', 'taco', 'donut', 'ice cream', 'cookie', 'cake', 'carrot', 'popcorn', 'cheese',
+  'egg', 'pancake', 'watermelon', 'cherry', 'grapes', 'pineapple', 'lemon', 'sandwich', 'hot dog', 'spaghetti', 'sushi',
+  'cat', 'dog', 'fish', 'shark', 'whale', 'octopus', 'snake', 'turtle', 'frog', 'rabbit', 'horse', 'cow', 'pig',
+  'chicken', 'duck', 'owl', 'penguin', 'elephant', 'giraffe', 'lion', 'monkey', 'bear', 'spider', 'bee', 'butterfly',
+  'snail', 'crab', 'dinosaur', 'dragon', 'unicorn', 'bat', 'mouse', 'zebra', 'kangaroo', 'camel', 'deer', 'fox',
+  'house', 'castle', 'bridge', 'tower', 'church', 'tent', 'igloo', 'lighthouse', 'pyramid', 'windmill', 'barn',
+  'car', 'bus', 'train', 'bicycle', 'airplane', 'helicopter', 'rocket', 'boat', 'submarine', 'tractor', 'skateboard',
+  'sun', 'moon', 'star', 'cloud', 'rainbow', 'lightning', 'snowman', 'volcano', 'mountain', 'island', 'tree', 'flower',
+  'cactus', 'mushroom', 'leaf', 'beach', 'waterfall', 'tornado', 'planet', 'comet', 'river', 'desert',
+  'guitar', 'piano', 'drum', 'trumpet', 'violin', 'microphone', 'headphones', 'camera', 'television', 'computer',
+  'phone', 'robot', 'clock', 'lamp', 'candle', 'key', 'lock', 'umbrella', 'scissors', 'hammer', 'ladder', 'bucket',
+  'chair', 'bed', 'door', 'window', 'toothbrush', 'glasses', 'hat', 'crown', 'shoe', 'sock', 'shirt', 'backpack',
+  'book', 'pencil', 'envelope', 'balloon', 'kite', 'gift', 'trophy', 'medal', 'anchor', 'sword', 'shield', 'bow',
+  'football', 'basketball', 'tennis', 'bowling', 'golf', 'soccer', 'baseball', 'surfing', 'skiing', 'swimming',
+  'ghost', 'vampire', 'zombie', 'witch', 'pirate', 'ninja', 'astronaut', 'wizard', 'mermaid', 'alien', 'superhero',
+  'clown', 'king', 'queen', 'doctor', 'chef', 'firefighter', 'teacher', 'farmer', 'cowboy',
+  'heart', 'smile', 'eye', 'nose', 'hand', 'foot', 'tooth', 'brain', 'skeleton', 'beard', 'mustache',
+  'fire', 'ice', 'magnet', 'battery', 'light bulb', 'treasure', 'map', 'compass', 'flag', 'bomb', 'diamond', 'coin',
+  'pool', 'snake game', 'joystick', 'dice', 'chess', 'puzzle', 'yo-yo', 'teddy bear', 'sandcastle', 'campfire',
+  'traffic light', 'fire hydrant', 'mailbox', 'swing', 'slide', 'roller coaster', 'ferris wheel', 'circus', 'zoo',
+];
