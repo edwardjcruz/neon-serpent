@@ -101,6 +101,7 @@
     </section>
     <section class="pool-game" id="pool-game" hidden>
       <header><div class="logo"><b>◎</b><span><small>POOL PROTOCOL</small><h1>NEON <i>CUE</i></h1></span></div><div class="pool-header-buttons"><button id="pool-react-toggle" aria-label="Send a reaction" aria-expanded="false" hidden>💬</button><button id="pool-help-button" aria-label="How to play">?</button><button id="pool-mute" aria-label="Turn sound off">🔊</button><button id="pool-restart" aria-label="Re-rack the table">↻</button><button id="pool-focus-toggle" class="pool-focus-toggle" aria-label="Exit full-screen view">✕</button></div></header>
+      <div class="pool-ticker" id="pool-ticker" hidden aria-label="Global ranking, top 10"><b>GLOBAL TOP 10</b><div class="pool-ticker-window"><div class="pool-ticker-track" id="pool-ticker-track"></div></div></div>
       <div class="pool-quick-reactions" id="pool-quick-reactions" hidden aria-label="Quick reactions"></div>
       <div class="pool-toolbar"><span>OPPONENT</span><div role="group" aria-label="Pool game mode"><button data-pool-mode="cpu" class="active">VS CPU</button><button data-pool-mode="local">PASS &amp; PLAY</button><button data-pool-mode="online">ONLINE ROOM</button></div></div>
       <div class="pool-toolbar pool-levels" id="pool-levels"><span>CPU LEVEL</span><div role="group" aria-label="Computer difficulty"><button data-pool-level="easy">EASY</button><button data-pool-level="medium" class="active">MEDIUM</button><button data-pool-level="hard">HARD</button></div></div>
@@ -174,6 +175,7 @@
         <div class="pool-room" id="pool-room" hidden><small>ROOM CODE</small><strong id="pool-room-code">-----</strong><button id="pool-copy" class="pool-primary">COPY INVITE LINK</button><ol id="pool-seats"></ol><p class="pool-h2h" id="pool-h2h" aria-live="polite"></p><div class="pool-reactions" id="pool-reactions" aria-label="Send a reaction"></div><button id="pool-alerts" class="pool-alerts">🔔 TURN ON TURN ALERTS</button><button id="pool-leave" class="pool-leave">LEAVE ROOM</button></div>
         <small id="pool-notice" class="pool-notice" aria-live="polite"></small>
         <div class="pool-rivals-box"><small>RIVALS · HEAD TO HEAD</small><ul id="pool-rivals" class="pool-rivals"></ul></div>
+        <div class="pool-ranking-box" id="pool-ranking-box" hidden><small>GLOBAL RANKING · TOP 10</small><ol id="pool-ranking" class="pool-ranking"></ol><p id="pool-ranking-you"></p><small class="pool-ranking-note">ONLINE RACKS COUNT WHEN BOTH PLAYERS FINISH THEM · MEDIUM/HARD CPU WINS ADD A LITTLE</small></div>
         <div class="pool-record-box"><small>YOUR RECORD · THIS DEVICE</small><ul id="pool-record" class="pool-record"></ul></div>
         <footer>ONLY PEOPLE WITH THE CODE CAN JOIN · ROOMS EXPIRE AFTER 24H</footer></section>
       <section class="leaderboard-panel" id="lineup-leaderboard" aria-label="Line Up rooms and record" hidden><div class="leader-head"><span><small>MULTIPLAYER UPLINK</small><h2>PRIVATE<br><i>LINE UP ROOMS</i></h2></span><small class="live offline" id="lu-connection">● OFFLINE</small></div>
@@ -205,6 +207,7 @@
   <script src="pool-ai.js"></script>
   <script src="pool-sound.js"></script>
   <script src="rivals.js"></script>
+  <script src="pool-ranking.js"></script>
   <script src="pool.js"></script>
   <script src="lineup-engine.js"></script>
   <script src="lineup.js"></script>

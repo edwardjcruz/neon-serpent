@@ -364,10 +364,11 @@
     const key = `${mode}:${online?.code || ''}:${(state.match || []).join()}:${state.shots}`;
     if (key !== lastCounted) {
       lastCounted = key;
-      if (mode === 'cpu') { const record = loadRecord(); record.cpu[cpuLevel][won ? 0 : 1] += 1; saveRecord(record); }
+      if (mode === 'cpu') { const record = loadRecord(); record.cpu[cpuLevel][won ? 0 : 1] += 1; saveRecord(record); window.NeonPoolRanking?.reportCpu({ level: cpuLevel, won, name: stored('neonPoolName', '') }); }
       if (mode === 'online') {
         const record = loadRecord(); record.online[won ? 0 : 1] += 1; saveRecord(record);
         const rival = opponent(); if (rival.id) Rivals?.record('pool', { ...rival, won });
+        window.NeonPoolRanking?.reportRack({ code: online.code, rack: (state.match || []).reduce((sum, n) => sum + n, 0), winner: state.winner });
         if (document.hidden) notify(won ? 'You won the rack! ⚪' : 'Your opponent won the rack.');
       }
       track('game_finished', { outcome: mode === 'local' ? `player_${state.winner + 1}` : won ? 'won' : 'lost', shots: state.shots });
