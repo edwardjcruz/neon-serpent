@@ -14,11 +14,14 @@ const schema = a.schema({
     // A guest can submit and view scores, but cannot alter or delete a record.
     .authorization((allow) => [allow.guest().to(['create', 'read'])]),
 
-  // A private 8-ball room. Players find it only by its code; the table state is a JSON string
-  // written by whoever just shot, and both browsers listen for updates to stay in sync.
+  // A private online room for Neon Cue (pool) or Line Up. Players find it only by its code; the game state is a
+  // JSON string written by whoever just moved, and both browsers listen for updates to stay in sync.
+  // (Named PoolRoom because pool came first; renaming the model would replace the table and its rooms.)
   PoolRoom: a
     .model({
       code: a.string().required(),
+      // 'pool' or 'lineup'; rooms made before Line Up existed have none and are pool rooms.
+      game: a.string(),
       hostId: a.string().required(),
       hostName: a.string().required(),
       guestId: a.string(),
