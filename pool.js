@@ -20,14 +20,14 @@
   let spin = { x: 0, y: 0 }; // where the cue tip strikes: x = right english, y = follow (+) / draw (−)
   let mode = 'cpu', state = E.newRack(0), angle = 0, place = null, run = null, final = null, acc = 0, lastTime = 0, frame = 0, dragging = null;
   let cpuLevel = AI?.LEVELS[stored('neonPoolCpu', 'medium')] ? stored('neonPoolCpu', 'medium') : 'medium', cpuTimer = 0, cpuAim = null;
-  let call = null, callPicked = false, lastCall = null; // the pocket called for the 8; picked = chosen by tapping rather than following the aim
+  let call = null, callPicked = false, lastCall = null; // the pocket called for the black; picked = chosen by tapping rather than following the aim
   let pull = null; // { power } while a touch player is pulling the stick back
   let banner = null, sinking = [], fxFrame = 0, soundIndex = 0, sinkSeen = 0, lastCounted = '';
   let online = null; // { code, seat, seq, room, sub, poll, pending, sending, reactionAt, lastReaction }
   // Phones held upright get the table stood on its end so the balls are big enough to aim at.
   const portraitQuery = matchMedia('(max-width: 760px) and (orientation: portrait)');
   const coarseQuery = matchMedia('(pointer: coarse)');
-  let portrait = false;
+  let portrait = false, dpr = 1;
   // Phones get a full-screen play view once a game starts: no site menu or setup rows, the biggest table that fits,
   // and controls pinned to the bottom (or the side in landscape).
   const smallScreen = matchMedia('(max-width: 760px), (max-height: 500px)');
@@ -47,7 +47,7 @@
   const power = () => (pull ? pull.power : cpuAim ? cpuAim.power : sliderPower());
   const shooterOnEight = () => state.winner === null && E.onEight(state, state.turn);
   const parse = (text) => { try { return typeof text === 'string' ? JSON.parse(text) : text; } catch { return null; } };
-  const track = (event, details = {}) => window.trackGameEvent?.(event, 'eight_ball', { mode, ...(mode === 'cpu' ? { difficulty: cpuLevel } : {}), ...details });
+  const track = (event, details = {}) => window.trackGameEvent?.(event, 'neon_cue', { mode, ...(mode === 'cpu' ? { difficulty: cpuLevel } : {}), ...details });
 
   // ---------- table state ----------
   function resetPlacement() {
@@ -60,6 +60,7 @@
   function cuePosition() { return state.ballInHand && place ? place : state.balls[0]; }
   function setState(next) {
     state = next; resetPlacement(); call = null; callPicked = false;
+    if (state.shots === 0) spins.clear();
     const cue = cuePosition(), target = state.balls.find((b) => b.n && !b.in);
     if (target && cue) angle = Math.atan2(target.y - cue.y, target.x - cue.x);
     render(); maybeCpuTurn();
@@ -81,7 +82,7 @@
     }
     if (mode === 'online' && !online) status = 'CREATE A PRIVATE ROOM, OR JOIN ONE WITH A CODE →';
     if (mode === 'cpu' && state.turn === 1 && state.winner === null && !run) status = `${status} · CPU IS LINING UP…`;
-    if (canShoot() && shooterOnEight()) status = call === null ? 'ON THE 8 — TAP A POCKET TO CALL IT' : `ON THE 8 — POCKET CALLED${callPicked ? '' : ' FROM YOUR AIM'} · TAP ANOTHER TO CHANGE`;
+    if (canShoot() && shooterOnEight()) status = call === null ? 'ON THE BLACK — TAP A POCKET TO CALL IT' : `ON THE BLACK — POCKET CALLED${callPicked ? '' : ' FROM YOUR AIM'} · TAP ANOTHER TO CHANGE`;
     $('#pool-status').textContent = status;
     $('#pool-shoot').disabled = !canShoot();
     $('#pool-pull').classList.toggle('disabled', !canShoot());
@@ -111,23 +112,64 @@
       wait.hidden = false;
     } else if (overlay.dataset.intro === 'true') {
       overlay.hidden = false; intro.hidden = false; end.hidden = true; $('#pool-eyebrow').textContent = 'THE TABLE IS RACKED';
-      title.textContent = "RACK 'EM UP"; message.textContent = 'Sink your group, then call and sink the 8. Play the computer, a friend on this device, or open a private online room.';
+      title.textContent = "RACK 'EM UP"; message.textContent = 'Sink your group, then call and sink the black. Play the computer, a friend on this device, or open a private online room.';
     } else overlay.hidden = true;
   }
 
   // ---------- drawing ----------
-  function drawBall(b, x = b.x, y = b.y, scale = 1) {
-    const r = E.BR * scale;
-    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-    if (b.n === 0) { ctx.fillStyle = '#f7faee'; ctx.shadowColor = '#68d8ff'; ctx.shadowBlur = 12; ctx.fill(); ctx.restore(); return; }
-    const color = COLORS[b.n > 8 ? b.n - 8 : b.n];
-    ctx.fillStyle = E.isStripe(b.n) ? '#f7faee' : color; ctx.fill(); ctx.clip();
-    if (E.isStripe(b.n)) { ctx.fillStyle = color; ctx.fillRect(x - r, y - r * .55, r * 2, r * 1.1); }
-    ctx.beginPath(); ctx.arc(x, y, r * .48, 0, Math.PI * 2); ctx.fillStyle = '#f7faee'; ctx.fill();
-    if (scale > .6) {
-      ctx.translate(x, y); if (portrait) ctx.rotate(Math.PI / 2);
-      ctx.fillStyle = '#142226'; ctx.font = '700 7px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.n, 0, .5);
+  // ---------- rolling balls (drawing only; the physics never sees this) ----------
+  // Each ball keeps a 3D orientation: `p` points at its number spot and `a` is the stripe's axis. As a ball moves,
+  // both turn about the axis perpendicular to its path by distance ÷ radius, so numbers and stripes roll across it.
+  const FLAT = { p: [0, 0, 1], a: [0, 1, 0] };
+  const spins = new Map();
+  function orientation(b) { let o = spins.get(b.n); if (!o) { o = { p: [0, 0, 1], a: [0, 1, 0], x: b.x, y: b.y }; spins.set(b.n, o); } return o; }
+  function rotate(v, kx, ky, angle) {
+    const cos = Math.cos(angle), sin = Math.sin(angle), dot = kx * v[0] + ky * v[1];
+    const cx = ky * v[2], cy = -kx * v[2], cz = kx * v[1] - ky * v[0]; // k × v with k = (kx, ky, 0)
+    const out = [v[0] * cos + cx * sin + kx * dot * (1 - cos), v[1] * cos + cy * sin + ky * dot * (1 - cos), v[2] * cos + cz * sin];
+    const length = Math.hypot(...out); return out.map((value) => value / length);
+  }
+  function roll(balls) {
+    for (const b of balls) {
+      if (b.in) continue;
+      const o = orientation(b), dx = b.x - o.x, dy = b.y - o.y, distance = Math.hypot(dx, dy);
+      // Big jumps are placements (ball in hand, re-spots), not rolling.
+      if (distance > .01 && distance < 60) { const kx = -dy / distance, ky = dx / distance, angle = distance / E.BR; o.p = rotate(o.p, kx, ky, angle); o.a = rotate(o.a, kx, ky, angle); }
+      o.x = b.x; o.y = b.y;
     }
+  }
+  function syncSpins(balls) { for (const b of balls) { const o = orientation(b); o.x = b.x; o.y = b.y; } }
+
+  function drawBall(b, x = b.x, y = b.y, scale = 1, o = orientation(b)) {
+    const r = E.BR * scale, color = b.n === 0 ? '#f7faee' : COLORS[b.n > 8 ? b.n - 8 : b.n];
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+    if (b.n === 0) { ctx.shadowColor = '#68d8ff'; ctx.shadowBlur = 12; }
+    ctx.fillStyle = E.isStripe(b.n) || b.n === 0 ? '#f7faee' : color; ctx.fill(); ctx.shadowBlur = 0; ctx.clip();
+    if (E.isStripe(b.n)) {
+      // The band is the great circle around axis `a`; seen from above it's an ellipse squashed by a.z.
+      ctx.beginPath(); ctx.ellipse(x, y, r, Math.max(.01, r * Math.abs(o.a[2])), Math.atan2(o.a[1], o.a[0]) + Math.PI / 2, 0, Math.PI * 2);
+      ctx.strokeStyle = color; ctx.lineWidth = r * 1.1; ctx.stroke();
+    }
+    if (b.n === 0) {
+      // A few small dots so the cue ball's roll shows too.
+      for (const v of [o.p, o.a, o.p.map((c) => -c), o.a.map((c) => -c)]) if (v[2] > .05) { ctx.beginPath(); ctx.ellipse(x + v[0] * r, y + v[1] * r, r * .16, r * .16 * v[2], Math.atan2(v[1], v[0]), 0, Math.PI * 2); ctx.fillStyle = '#ff4f8c99'; ctx.fill(); }
+    } else {
+      // Number spots on both sides of the ball, foreshortened as they turn away.
+      for (const v of [o.p, o.p.map((c) => -c)]) {
+        if (v[2] <= .05) continue;
+        const sx = x + v[0] * r * .92, sy = y + v[1] * r * .92;
+        ctx.beginPath(); ctx.ellipse(sx, sy, r * .46, r * .46 * Math.max(.12, v[2]), Math.atan2(v[1], v[0]) + Math.PI / 2, 0, Math.PI * 2); ctx.fillStyle = '#f7faee'; ctx.fill();
+        if (scale > .6 && v[2] > .55) {
+          ctx.save(); ctx.translate(sx, sy); if (portrait) ctx.rotate(Math.PI / 2);
+          ctx.globalAlpha = Math.min(1, (v[2] - .55) * 3); ctx.fillStyle = '#142226'; ctx.font = '700 7px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.n, 0, .5); ctx.restore();
+        }
+      }
+    }
+    // Light from the top-left of the screen (the table is turned on phones held upright).
+    const [hx, hy] = portrait ? [.4 * r, -.35 * r] : [-.35 * r, -.4 * r];
+    const shade = ctx.createRadialGradient(x + hx, y + hy, r * .05, x, y, r);
+    shade.addColorStop(0, 'rgba(255,255,255,.55)'); shade.addColorStop(.35, 'rgba(255,255,255,0)'); shade.addColorStop(.75, 'rgba(0,0,0,0)'); shade.addColorStop(1, 'rgba(0,0,0,.38)');
+    ctx.fillStyle = shade; ctx.fillRect(x - r, y - r, r * 2, r * 2);
     ctx.restore();
     if (b.n === 8) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = '#ff4f8c80'; ctx.lineWidth = 1; ctx.stroke(); }
   }
@@ -172,7 +214,7 @@
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = '#050a0b'; ctx.fill();
       const called = !run && index === call && shooterOnEight();
       ctx.strokeStyle = called ? '#cffb4b' : '#ff4f8c55'; ctx.lineWidth = called ? 3 : 2; if (called) { ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 14; } ctx.stroke(); ctx.shadowBlur = 0;
-      if (called) { ctx.save(); ctx.translate(x, y); if (portrait) ctx.rotate(Math.PI / 2); ctx.fillStyle = '#cffb4b'; ctx.font = '700 11px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('8', 0, 1); ctx.restore(); }
+      if (called) { ctx.save(); ctx.translate(x, y); if (portrait) ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fillStyle = '#0d1314'; ctx.fill(); ctx.strokeStyle = '#cffb4b'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore(); }
     });
   }
 
@@ -200,7 +242,7 @@
       const dn = dx * nx + dy * ny, speed = E.MAX_SPEED * Math.max(.05, power()), top = spin.y * E.FOLLOW * Math.exp(-E.FOLLOW_FADE * t / speed);
       const ax = dx - nx * dn + dx * top, ay = dy - ny * dn + dy * top, length = Math.min(110, Math.hypot(ax, ay) * 110);
       if (length > 4) { const a = Math.hypot(ax, ay); ctx.strokeStyle = '#ff4f8ccc'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + ax / a * length, gy + ay / a * length); ctx.stroke(); ctx.setLineDash([]); }
-      // On the 8, the call follows the aim until the player taps a pocket themselves.
+      // On the black, the call follows the aim until the player taps a pocket themselves.
       if (shooterOnEight() && !callPicked) call = hit.n === 8 ? pocketAlong(hit, nx, ny) : null;
     } else if (shooterOnEight() && !callPicked) call = null;
     if (call !== lastCall) queueMicrotask(render);
@@ -210,7 +252,7 @@
   function draw() {
     const table = run ? run.table : state;
     // Portrait maps table (x, y) to screen (y, W − x): the break end sits at the bottom, the rack at the top.
-    if (portrait) ctx.setTransform(0, -1, 1, 0, 0, E.W); else ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (portrait) ctx.setTransform(0, -dpr, dpr, 0, 0, E.W * dpr); else ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawTable(table);
     for (const b of table.balls) {
       if (b.in) continue;
@@ -231,8 +273,8 @@
     }
     // Pocketed balls along the bottom rail, solids left and stripes right.
     const sunk = table.balls.filter((b) => b.in && b.n !== 0);
-    sunk.filter((b) => b.n <= 8).forEach((b, i) => drawBall(b, 60 + i * 22, E.H - 14));
-    sunk.filter((b) => b.n > 8).forEach((b, i) => drawBall(b, E.W - 60 - i * 22, E.H - 14));
+    sunk.filter((b) => b.n <= 8).forEach((b, i) => drawBall(b, 60 + i * 22, E.H - 14, 1, FLAT));
+    sunk.filter((b) => b.n > 8).forEach((b, i) => drawBall(b, E.W - 60 - i * 22, E.H - 14, 1, FLAT));
     drawBanner(now);
   }
 
@@ -243,8 +285,8 @@
     const age = now - banner.born;
     if (age > 1700) { banner = null; return; }
     const alpha = age < 150 ? age / 150 : age > 1300 ? (1700 - age) / 400 : 1;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    const w = canvas.width, h = canvas.height, size = Math.min(30, w / 14);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const w = canvas.width / dpr, h = canvas.height / dpr, size = Math.min(30, w / 14);
     ctx.globalAlpha = alpha * .82; ctx.fillStyle = '#0b1517'; ctx.fillRect(0, h / 2 - size * 1.1, w, size * 2.2);
     ctx.globalAlpha = alpha; ctx.fillStyle = banner.color; ctx.font = `700 ${size}px "Space Grotesk", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.shadowColor = banner.color; ctx.shadowBlur = 12; ctx.fillText(banner.text, w / 2, h / 2 + 1); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
@@ -258,7 +300,7 @@
 
   // ---------- shooting ----------
   function animate(shot, after) {
-    run = E.beginShot(state, shot, { sounds: true }); final = after || null; acc = 0; lastTime = performance.now(); soundIndex = 0; sinkSeen = 0;
+    run = E.beginShot(state, shot, { sounds: true }); syncSpins(run.table.balls); final = after || null; acc = 0; lastTime = performance.now(); soundIndex = 0; sinkSeen = 0;
     Sound?.cue(Math.hypot(shot.vx, shot.vy) / E.MAX_SPEED);
     render(); cancelAnimationFrame(frame); frame = requestAnimationFrame(tick);
   }
@@ -281,7 +323,7 @@
     acc += Math.min(.05, (time - lastTime) / 1000) * 240; lastTime = time;
     const steps = Math.floor(acc); acc -= steps;
     const done = E.advance(run, steps);
-    playSounds();
+    roll(run.table.balls); playSounds();
     if (done) {
       const before = run.before, next = final || E.resolve(run);
       run = null; final = null; setState(next); afterShot(before, next);
@@ -298,7 +340,7 @@
     const foul = next.message.match(/^FOUL: (.+?) —/);
     if (foul) { showBanner(`FOUL · ${foul[1]}`, '#ff4f8c'); Sound?.foul(); }
     else if (next.groups && !before.groups) showBanner(`${names()[before.turn]}: ${next.groups[before.turn].toUpperCase()}`);
-    else if (next.turn === before.turn && !before.isBreak) showBanner(E.onEight(next, next.turn) ? 'ON THE 8!' : 'POTTED · SHOOT AGAIN');
+    else if (next.turn === before.turn && !before.isBreak) showBanner(E.onEight(next, next.turn) ? 'ON THE BLACK!' : 'POTTED · SHOOT AGAIN');
     else if (before.isBreak && next.turn === before.turn) showBanner('GREAT BREAK · SHOOT AGAIN');
     if (before.isBreak) track('break_shot', {});
     if (mode === 'online' && next.turn === online.seat && before.turn !== online.seat) yourTurn('Your opponent has shot. Your turn!');
@@ -314,7 +356,7 @@
       if (mode === 'online') {
         const record = loadRecord(); record.online[won ? 0 : 1] += 1; saveRecord(record);
         const rival = opponent(); if (rival.id) Rivals?.record('pool', { ...rival, won });
-        if (document.hidden) notify(won ? 'You won the rack! 🎱' : 'Your opponent won the rack.');
+        if (document.hidden) notify(won ? 'You won the rack! ⚪' : 'Your opponent won the rack.');
       }
       track('game_finished', { outcome: mode === 'local' ? `player_${state.winner + 1}` : won ? 'won' : 'lost', shots: state.shots });
     }
@@ -323,7 +365,7 @@
 
   async function shoot() {
     if (!canShoot()) return;
-    if (shooterOnEight() && call === null) { $('#pool-status').textContent = 'CALL YOUR POCKET FOR THE 8 — TAP THE POCKET FIRST'; showBanner('CALL A POCKET FOR THE 8', '#ff4f8c'); return; }
+    if (shooterOnEight() && call === null) { $('#pool-status').textContent = 'CALL YOUR POCKET FOR THE BLACK — TAP THE POCKET FIRST'; showBanner('CALL A POCKET FOR THE BLACK', '#ff4f8c'); return; }
     Sound?.unlock();
     const cue = cuePosition(), speed = E.MAX_SPEED * Math.max(.05, power());
     const shot = E.normalizeShot(state, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, cueX: cue.x, cueY: cue.y, spinX: spin.x, spinY: spin.y, call: shooterOnEight() ? call : null });
@@ -393,7 +435,7 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { clearInterval(titleTimer); document.title = baseTitle; } });
   function notify(body) {
     if (!document.hidden) return;
-    flashTitle('🎱 ' + body.split('.')[0]);
+    flashTitle('⚪ ' + body.split('.')[0]);
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     const options = { body, tag: `pool-${online?.code || 'game'}`, icon: 'pool-icon-192.png' };
     // Some phones only allow notifications through the service worker.
@@ -613,12 +655,14 @@
 
   // ---------- input ----------
   function toTable(event) {
-    const rect = canvas.getBoundingClientRect(), sx = (event.clientX - rect.left) * canvas.width / rect.width, sy = (event.clientY - rect.top) * canvas.height / rect.height;
+    const rect = canvas.getBoundingClientRect(), sx = (event.clientX - rect.left) * (canvas.width / dpr) / rect.width, sy = (event.clientY - rect.top) * (canvas.height / dpr) / rect.height;
     return portrait ? { x: E.W - sy, y: sx } : { x: sx, y: sy };
   }
   function applyOrientation() {
     portrait = portraitQuery.matches;
-    canvas.width = portrait ? E.H : E.W; canvas.height = portrait ? E.W : E.H;
+    // Draw at the screen's pixel density so balls stay sharp on phones and Retina displays.
+    dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+    canvas.width = (portrait ? E.H : E.W) * dpr; canvas.height = (portrait ? E.W : E.H) * dpr;
     $('#pool-game').classList.toggle('pool-portrait', portrait);
     draw();
   }
@@ -776,7 +820,7 @@
   $('#pool-copy').addEventListener('click', async () => {
     const link = inviteLink(online.code);
     // Phones get the share sheet (Messages, WhatsApp…); everything else copies the link.
-    if (navigator.share && coarseQuery.matches) { try { await navigator.share({ title: 'Neon Cue', text: `${online.invitee ? 'Rematch? ' : ''}Join my Neon Cue pool table 🎱 (room ${online.code})`, url: link }); return; } catch (error) { if (error?.name === 'AbortError') return; } }
+    if (navigator.share && coarseQuery.matches) { try { await navigator.share({ title: 'Neon Cue', text: `${online.invitee ? 'Rematch? ' : ''}Join my Neon Cue pool table ⚪ (room ${online.code})`, url: link }); return; } catch (error) { if (error?.name === 'AbortError') return; } }
     try { await navigator.clipboard.writeText(link); $('#pool-copy').textContent = 'LINK COPIED'; } catch { prompt('Copy this invite link:', link); }
     setTimeout(() => { $('#pool-copy').textContent = 'COPY INVITE LINK'; }, 1800);
   });
