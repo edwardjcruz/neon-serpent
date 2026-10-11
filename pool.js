@@ -2,7 +2,7 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => document.querySelectorAll(selector);
   const canvas = $('#pool-canvas');
-  const E = window.NeonPoolEngine, AI = window.NeonPoolAI, Sound = window.NeonPoolSound;
+  const E = window.NeonPoolEngine, AI = window.NeonPoolAI, Sound = window.NeonPoolSound, Rivals = window.NeonRivals;
   if (!canvas || !E) return;
   const ctx = canvas.getContext('2d');
   const COLORS = { 1: '#ffd23f', 2: '#3d8bff', 3: '#ff4d4d', 4: '#a66bff', 5: '#ff8c42', 6: '#2fd27a', 7: '#c2415d', 8: '#0d1314' };
@@ -106,7 +106,8 @@
       $('#pool-change-mode').hidden = mode === 'online';
     } else if (mode === 'online' && online?.room?.status === 'waiting') {
       overlay.hidden = false; intro.hidden = true; end.hidden = true;
-      title.textContent = 'ROOM OPEN'; message.textContent = `Send your opponent the invite link or room code ${online.code}. The match starts as soon as they join.`;
+      title.textContent = online.invitee ? `REMATCH VS ${online.invitee}` : 'ROOM OPEN';
+      message.textContent = `Send ${online.invitee || 'your opponent'} the invite link or room code ${online.code}. The match starts as soon as they join.`;
       wait.hidden = false;
     } else if (overlay.dataset.intro === 'true') {
       overlay.hidden = false; intro.hidden = false; end.hidden = true;
@@ -310,7 +311,11 @@
     if (key !== lastCounted) {
       lastCounted = key;
       if (mode === 'cpu') { const record = loadRecord(); record.cpu[cpuLevel][won ? 0 : 1] += 1; saveRecord(record); }
-      if (mode === 'online') { const record = loadRecord(); record.online[won ? 0 : 1] += 1; saveRecord(record); if (document.hidden) notify(won ? 'You won the rack! 🎱' : 'Your opponent won the rack.'); }
+      if (mode === 'online') {
+        const record = loadRecord(); record.online[won ? 0 : 1] += 1; saveRecord(record);
+        const rival = opponent(); if (rival.id) Rivals?.record('pool', { ...rival, won });
+        if (document.hidden) notify(won ? 'You won the rack! 🎱' : 'Your opponent won the rack.');
+      }
       track('game_finished', { outcome: mode === 'local' ? `player_${state.winner + 1}` : won ? 'won' : 'lost', shots: state.shots });
     }
     render();
@@ -402,6 +407,12 @@
   }
 
   // ---------- online rooms ----------
+  // The other player in the current room, as rivals are keyed: their browser's player id plus callsign.
+  function opponent() {
+    const room = online?.room; if (!room) return {};
+    return online.seat === 0 ? { id: room.guestId, name: room.guestName } : { id: room.hostId, name: room.hostName };
+  }
+  function announceRival() { const rival = opponent(); if (rival.id && Rivals) showToast(Rivals.summary('pool', rival.id, rival.name), true); }
   const client = () => window.neonDataClient;
   const rooms = () => client()?.models?.PoolRoom;
   function setConnection(text, live) { const badge = $('#pool-connection'); badge.textContent = `● ${text}`; badge.classList.toggle('offline', !live); }
@@ -445,7 +456,7 @@
       if (remote) {
         setState(remote);
         if (remote.winner !== null) gameOver();
-        else if (wasWaiting && room.status === 'playing') { $('#pool-notice').textContent = `${clean(room.guestName)} JOINED. GOOD LUCK.`; yourTurn(`${clean(room.guestName)} joined your table. Your break!`); }
+        else if (wasWaiting && room.status === 'playing') { $('#pool-notice').textContent = `${clean(room.guestName)} JOINED. GOOD LUCK.`; yourTurn(`${clean(room.guestName)} joined your table. Your break!`); announceRival(); }
         else if (remote.isBreak && remote.turn === online.seat) yourTurn('New rack — your break!');
         else if (!wasMyTurn && remote.turn === online.seat) yourTurn('Your turn!');
       }
@@ -494,9 +505,9 @@
     return true;
   }
 
-  async function createRoom() {
+  async function createRoom(invitee = null) {
     const name = playerName(), notice = $('#pool-notice');
-    if (!name) { notice.textContent = 'ENTER A CALLSIGN FIRST.'; $('#pool-name').focus(); return; }
+    if (!name) { notice.textContent = invitee ? 'ENTER YOUR CALLSIGN, THEN TAP REMATCH AGAIN.' : 'ENTER A CALLSIGN FIRST.'; $('#pool-name').focus(); return; }
     if (needsClient()) return;
     notice.textContent = 'OPENING A PRIVATE ROOM…';
     for (let attempt = 0; attempt < 4; attempt += 1) {
@@ -504,7 +515,8 @@
       try {
         const { data, errors } = await rooms().create({ code, hostId: me, hostName: name, status: 'waiting', seq: 1, state: JSON.stringify(E.newRack(0)), expiresAt: expiry() });
         failIf(errors);
-        notice.textContent = 'ROOM READY. SEND THE INVITE LINK.'; enterRoom(data, 0); track('room_created'); return;
+        notice.textContent = invitee ? `ROOM READY. SEND ${invitee.name} THE INVITE.` : 'ROOM READY. SEND THE INVITE LINK.';
+        enterRoom(data, 0); online.invitee = invitee?.name || null; render(); track('room_created', { rematch: Boolean(invitee) }); return;
       } catch { /* code taken or a network blip: try another code */ }
     }
     notice.textContent = 'COULD NOT OPEN A ROOM. CHECK YOUR CONNECTION.';
@@ -528,7 +540,7 @@
       // Two people could click join at the same moment; whoever's write landed last holds the seat.
       const joined = await fetchRoom(code);
       if (joined?.guestId !== me) { notice.textContent = 'SOMEONE ELSE TOOK THAT SEAT.'; return; }
-      notice.textContent = `JOINED ${clean(joined.hostName)}'S TABLE.`; enterRoom(joined, 1); track('room_joined');
+      notice.textContent = `JOINED ${clean(joined.hostName)}'S TABLE.`; enterRoom(joined, 1); announceRival(); track('room_joined');
     } catch { notice.textContent = 'COULD NOT REACH THE ROOM. TRY AGAIN.'; }
   }
 
@@ -552,10 +564,14 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => { toast.hidden = true; }, 3200);
   }
 
+  function renderRivals() { if (Rivals) Rivals.render('pool', $('#pool-rivals'), (rival) => { begin('online'); createRoom(rival); }); }
   function renderRoom() {
     const inRoom = mode === 'online' && online?.room;
     $('#pool-lobby').hidden = Boolean(inRoom); $('#pool-room').hidden = !inRoom;
+    renderRivals();
     if (!inRoom) return;
+    const rival = opponent();
+    $('#pool-h2h').textContent = rival.id && Rivals ? Rivals.summary('pool', rival.id, rival.name) : '';
     $('#pool-room-code').textContent = online.code;
     $('#pool-reactions').hidden = online.room.status === 'waiting';
     const seats = $('#pool-seats'); seats.replaceChildren();
@@ -749,6 +765,8 @@
   $('#pool-leave').addEventListener('click', () => { setFocus(false); leaveRoom(true); mode = 'online'; state = E.newRack(0); render(); $('#pool-notice').textContent = 'YOU LEFT THE ROOM. USE THE CODE TO REJOIN.'; });
   $('#pool-copy').addEventListener('click', async () => {
     const link = inviteLink(online.code);
+    // Phones get the share sheet (Messages, WhatsApp…); everything else copies the link.
+    if (navigator.share && coarseQuery.matches) { try { await navigator.share({ title: 'Neon Cue', text: `${online.invitee ? 'Rematch? ' : ''}Join my Neon Cue pool table 🎱 (room ${online.code})`, url: link }); return; } catch (error) { if (error?.name === 'AbortError') return; } }
     try { await navigator.clipboard.writeText(link); $('#pool-copy').textContent = 'LINK COPIED'; } catch { prompt('Copy this invite link:', link); }
     setTimeout(() => { $('#pool-copy').textContent = 'COPY INVITE LINK'; }, 1800);
   });
