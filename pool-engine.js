@@ -18,8 +18,8 @@ globalThis.NeonPoolEngine = (() => {
 
   // `match` carries the running score of racks won ([seat 0, seat 1]) from one rack to the next.
   // A fresh rack is shuffled like a real one: the black in the middle of the third row, one solid and one stripe
-  // in the back corners, everything else anywhere, with tiny uneven gaps. Without that, the same break played the
-  // same way would pot the same balls every time. (Randomness only happens here; the rack is then shared as data.)
+  // in the back corners, everything else anywhere, packed tight with tiny uneven gaps so no two breaks play out
+  // the same. (Randomness only happens here; the rack is then shared as data.)
   function newRack(breaker = 0, match = [0, 0], random = Math.random) {
     const shuffle = (list) => { for (let i = list.length - 1; i > 0; i -= 1) { const j = Math.floor(random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; } return list; };
     const solids = shuffle([1, 2, 3, 4, 5, 6, 7]), stripes = shuffle([9, 10, 11, 12, 13, 14, 15]);
@@ -28,7 +28,7 @@ globalThis.NeonPoolEngine = (() => {
     ROWS.forEach((size, row) => { for (let i = 0; i < size; i += 1) slots.push({ row, i, size }); });
     const order = slots.map((slot, index) => (index === 4 ? 8 : index === 10 ? corners[0] : index === 14 ? corners[1] : rest.pop()));
     const balls = [{ n: 0, x: HEAD_X, y: CY, vx: 0, vy: 0, in: false }];
-    const gap = .45, dx = BR * Math.sqrt(3) + gap, jitter = () => (random() - .5) * .3;
+    const gap = .02, dx = BR * Math.sqrt(3) + gap, jitter = () => (random() - .5) * .3;
     slots.forEach(({ row, i, size }, index) => balls.push({ n: order[index], x: FOOT_X + row * dx + jitter(), y: CY + (i - (size - 1) / 2) * (BR * 2 + gap) + jitter(), vx: 0, vy: 0, in: false }));
     return { balls, turn: breaker, groups: null, isBreak: true, ballInHand: true, kitchen: true, winner: null, message: 'BREAK SHOT — PLACE THE CUE BALL BEHIND THE LINE', shots: 0, match: [...match] };
   }
@@ -67,15 +67,24 @@ globalThis.NeonPoolEngine = (() => {
       // Rails bounce everywhere except at the pocket mouths, so a centre past the rail line has dropped.
       if (b.x < L || b.x > R || b.y < T || b.y > B) { b.in = true; b.vx = 0; b.vy = 0; events.pocketed.push(b.n); events.into[b.n] = pocketOf(b.x, b.y); sound(events, 'pocket', b.n); }
     }
-    for (let i = 0; i < balls.length; i += 1) {
-      const a = balls[i]; if (a.in) continue;
-      for (let j = i + 1; j < balls.length; j += 1) {
-        const c = balls[j]; if (c.in) continue;
-        const dx = c.x - a.x, dy = c.y - a.y, d2 = dx * dx + dy * dy;
-        if (d2 >= 4 * BR * BR || d2 === 0) continue;
-        const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, push = (BR * 2 - d) / 2;
+    // Contacts are found first and resolved together from the same velocities, repeated a few times per step so a hit
+    // still travels through a packed rack. Resolving pairs one at a time in list order favoured one side of the rack
+    // and sent the break into the same corner every time.
+    for (let pass = 0; pass < 8; pass += 1) {
+      const contacts = [];
+      for (let i = 0; i < balls.length; i += 1) {
+        const a = balls[i]; if (a.in) continue;
+        for (let j = i + 1; j < balls.length; j += 1) {
+          const c = balls[j]; if (c.in) continue;
+          const dx = c.x - a.x, dy = c.y - a.y, d2 = dx * dx + dy * dy;
+          if (d2 >= 4 * BR * BR || d2 === 0) continue;
+          const d = Math.sqrt(d2), nx = dx / d, ny = dy / d;
+          contacts.push({ a, c, nx, ny, push: (BR * 2 - d) / 2, approach: (a.vx - c.vx) * nx + (a.vy - c.vy) * ny });
+        }
+      }
+      if (!contacts.length) break;
+      for (const { a, c, nx, ny, push, approach } of contacts) {
         a.x -= nx * push; a.y -= ny * push; c.x += nx * push; c.y += ny * push;
-        const approach = (a.vx - c.vx) * nx + (a.vy - c.vy) * ny;
         if (approach <= 0) continue;
         const cue = a.n === 0 ? a : c.n === 0 ? c : null, cueSpeed = cue && cue.top ? Math.sqrt(cue.vx * cue.vx + cue.vy * cue.vy) : 0;
         const pathX = cueSpeed ? cue.vx / cueSpeed : 0, pathY = cueSpeed ? cue.vy / cueSpeed : 0;
