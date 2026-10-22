@@ -12,6 +12,7 @@
     pool: { game: '#pool-game', panel: '#pool-leaderboard' },
     lineup: { game: '#lineup-game', panel: '#lineup-leaderboard' },
     gomoku: { game: '#gomoku-game', panel: '#gomoku-leaderboard' },
+    sketch: { game: '#sketch-game', panel: '#sketch-leaderboard' },
   };
   const gameSections = Object.values(games).map(({ game }) => document.querySelector(game));
   const panels = Object.values(games).map(({ panel }) => document.querySelector(panel));

@@ -1,5 +1,6 @@
 import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
 import { rankPool } from '../functions/rank-pool/resource';
+import { sketchGame } from '../functions/sketch/resource';
 
 const schema = a.schema({
   Score: a
@@ -95,7 +96,142 @@ const schema = a.schema({
     .returns(a.json())
     .authorization((allow) => [allow.guest()])
     .handler(a.handler.function(rankPool)),
-}).authorization((allow) => [allow.resource(rankPool)]);
+
+  // ---------- Neon Sketch (draw and guess) ----------
+  // A room's shared state. Only the sketch-game function writes it; everyone can read and subscribe.
+  // turnStartedAt / turnEndsAt are epoch milliseconds (too big for a GraphQL Int).
+  SketchRoom: a
+    .model({
+      code: a.string().required(),
+      hostKey: a.string().required(),
+      status: a.string().required(), // lobby | choosing | drawing | reveal | over
+      round: a.integer().required(),
+      rounds: a.integer().required(),
+      drawSeconds: a.integer().required(),
+      turnIndex: a.integer().required(),
+      turnId: a.integer().required(),
+      drawerKey: a.string().required(),
+      drawerName: a.string().required(),
+      mask: a.string().required(), // the word as blanks plus any hint letters (the whole word during reveal)
+      hints: a.integer().required(),
+      lastWord: a.string().required(),
+      turnStartedAt: a.float().required(),
+      turnEndsAt: a.float().required(),
+      seq: a.integer().required(), // bumped on every change; updates only apply to the version they read
+      expiresAt: a.integer().required(),
+    })
+    .identifier(['code'])
+    .authorization((allow) => [allow.guest().to(['read'])]),
+
+  // A player in a room, keyed by a hash of their browser's guest identity. Written only by sketch-game.
+  SketchPlayer: a
+    .model({
+      roomCode: a.string().required(),
+      playerKey: a.string().required(),
+      name: a.string().required(),
+      score: a.integer().required(),
+      guessedTurn: a.integer().required(), // the turnId they last guessed right
+      joinedAt: a.float().required(),
+      expiresAt: a.integer().required(),
+    })
+    .identifier(['roomCode', 'playerKey'])
+    .authorization((allow) => [allow.guest().to(['read'])]),
+
+  // A batch of the drawer's pen points (or a clear/undo), written straight from the drawer's browser so drawing
+  // feels live. Browsers only draw batches whose `by` is the current drawer for the current turn.
+  SketchStroke: a
+    .model({
+      roomCode: a.string().required(),
+      sid: a.string().required(), // "<turnId>:<seq>", so a turn's strokes list in order
+      turnId: a.integer().required(),
+      by: a.string().required(),
+      data: a.string().required(),
+      expiresAt: a.integer().required(),
+    })
+    .identifier(['roomCode', 'sid'])
+    .authorization((allow) => [allow.guest().to(['create', 'read'])]),
+
+  // Chat and wrong guesses (right guesses never appear here, only "NAME guessed the word!"). Written by sketch-game.
+  SketchChat: a
+    .model({
+      roomCode: a.string().required(),
+      cid: a.string().required(), // time-ordered
+      name: a.string().required(),
+      text: a.string().required(),
+      kind: a.string().required(), // chat | guessed | correct | system
+      expiresAt: a.integer().required(),
+    })
+    .identifier(['roomCode', 'cid'])
+    .authorization((allow) => [allow.guest().to(['read'])]),
+
+  // The current turn's word choices and word. Server-only, like RankLedger.
+  SketchSecret: a
+    .model({
+      code: a.string().required(),
+      turnId: a.integer().required(),
+      options: a.string().required(),
+      word: a.string().required(),
+      expiresAt: a.integer().required(),
+    })
+    .identifier(['code'])
+    .authorization((allow) => [allow.group('ranking-admins').to(['read'])]),
+
+  sketchCreate: a
+    .mutation()
+    .arguments({ name: a.string().required(), rounds: a.integer(), drawSeconds: a.integer() })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(sketchGame)),
+
+  sketchJoin: a
+    .mutation()
+    .arguments({ code: a.string().required(), name: a.string().required() })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(sketchGame)),
+
+  sketchLeave: a
+    .mutation()
+    .arguments({ code: a.string().required() })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(sketchGame)),
+
+  sketchStart: a
+    .mutation()
+    .arguments({ code: a.string().required(), rounds: a.integer(), drawSeconds: a.integer() })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(sketchGame)),
+
+  sketchWord: a
+    .mutation()
+    .arguments({ code: a.string().required() })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(sketchGame)),
+
+  sketchChoose: a
+    .mutation()
+    .arguments({ code: a.string().required(), choice: a.integer().required() })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(sketchGame)),
+
+  sketchGuess: a
+    .mutation()
+    .arguments({ code: a.string().required(), text: a.string().required() })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(sketchGame)),
+
+  sketchTick: a
+    .mutation()
+    .arguments({ code: a.string().required() })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(sketchGame)),
+}).authorization((allow) => [allow.resource(rankPool), allow.resource(sketchGame)]);
 
 export type Schema = ClientSchema<typeof schema>;
 
