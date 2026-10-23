@@ -306,7 +306,7 @@
       const room = await fetchRoom(code);
       if (!room) { notice.textContent = `ROOM ${code} NOT FOUND OR EXPIRED.`; return; }
       // The online games share room codes; send another game's code to that game (rooms with no game are pool).
-      if (room.game !== 'lineup') { location.search = `?${room.game === 'gomoku' ? 'gomoku' : 'room'}=${code}`; return; }
+      if (room.game !== 'lineup') { location.search = `?${['gomoku', 'checkers'].includes(room.game) ? room.game : 'room'}=${code}`; return; }
       if (room.hostId === me) { notice.textContent = 'BACK IN YOUR ROOM.'; enterRoom(room, 0); return; }
       if (room.guestId === me) { notice.textContent = 'BACK IN THE GAME.'; enterRoom(room, 1); return; }
       if (room.guestId) { notice.textContent = 'THAT ROOM ALREADY HAS TWO PLAYERS.'; return; }
