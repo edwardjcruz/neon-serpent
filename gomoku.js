@@ -11,7 +11,7 @@
   const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', ROOM_TTL = 24 * 60 * 60;
   const REACTIONS = ['NICE MOVE!', 'UNLUCKY', 'GOOD GAME', 'REMATCH?', 'HURRY UP 😅', '🔥', '😂', '👏'];
   // Each online game's invite parameter, so a code typed into the wrong game opens the right one.
-  const INVITES = { pool: 'room', lineup: 'lineup', gomoku: 'gomoku' };
+  const INVITES = { pool: 'room', lineup: 'lineup', gomoku: 'gomoku', checkers: 'checkers' };
 
   // Same browser player id as the pool rooms, so rivals line up across games.
   const me = (() => { try { return localStorage.neonPoolId ||= crypto.randomUUID(); } catch { return crypto.randomUUID(); } })();
