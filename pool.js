@@ -5,7 +5,7 @@
   const E = window.NeonPoolEngine, AI = window.NeonPoolAI, Sound = window.NeonPoolSound, Rivals = window.NeonRivals;
   if (!canvas || !E) return;
   const ctx = canvas.getContext('2d');
-  const COLORS = { 1: '#ffd23f', 2: '#3d8bff', 3: '#ff4d4d', 4: '#a66bff', 5: '#ff8c42', 6: '#2fd27a', 7: '#c2415d', 8: '#0d1314' };
+  const COLORS = { 1: '#ffd23f', 2: '#3d8bff', 3: '#ff4d4d', 4: '#a66bff', 5: '#ff8c42', 6: '#2fd27a', 7: '#c2415d', 8: '#120e2a' };
   const POCKET_SIZES = [19, 16, 19, 19, 16, 19];
   const DRAWN_POCKETS = E.POCKETS.map(([x, y], i) => [x, y + (i === 1 ? -4 : i === 4 ? 4 : 0), POCKET_SIZES[i]]);
   const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -153,10 +153,10 @@
   function syncSpins(balls) { for (const b of balls) { const o = orientation(b); o.x = b.x; o.y = b.y; } }
 
   function drawBall(b, x = b.x, y = b.y, scale = 1, o = orientation(b)) {
-    const r = E.BR * scale, color = b.n === 0 ? '#f7faee' : COLORS[b.n > 8 ? b.n - 8 : b.n];
+    const r = E.BR * scale, color = b.n === 0 ? '#faf6ee' : COLORS[b.n > 8 ? b.n - 8 : b.n];
     ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-    if (b.n === 0) { ctx.shadowColor = '#68d8ff'; ctx.shadowBlur = 12; }
-    ctx.fillStyle = E.isStripe(b.n) || b.n === 0 ? '#f7faee' : color; ctx.fill(); ctx.shadowBlur = 0; ctx.clip();
+    if (b.n === 0) { ctx.shadowColor = '#3fd8d0'; ctx.shadowBlur = 12; }
+    ctx.fillStyle = E.isStripe(b.n) || b.n === 0 ? '#faf6ee' : color; ctx.fill(); ctx.shadowBlur = 0; ctx.clip();
     if (E.isStripe(b.n)) {
       // The band is the great circle around axis `a`; seen from above it's an ellipse squashed by a.z.
       ctx.beginPath(); ctx.ellipse(x, y, r, Math.max(.01, r * Math.abs(o.a[2])), Math.atan2(o.a[1], o.a[0]) + Math.PI / 2, 0, Math.PI * 2);
@@ -164,16 +164,16 @@
     }
     if (b.n === 0) {
       // A few small dots so the cue ball's roll shows too.
-      for (const v of [o.p, o.a, o.p.map((c) => -c), o.a.map((c) => -c)]) if (v[2] > .05) { ctx.beginPath(); ctx.ellipse(x + v[0] * r, y + v[1] * r, r * .16, r * .16 * v[2], Math.atan2(v[1], v[0]), 0, Math.PI * 2); ctx.fillStyle = '#ff4f8c99'; ctx.fill(); }
+      for (const v of [o.p, o.a, o.p.map((c) => -c), o.a.map((c) => -c)]) if (v[2] > .05) { ctx.beginPath(); ctx.ellipse(x + v[0] * r, y + v[1] * r, r * .16, r * .16 * v[2], Math.atan2(v[1], v[0]), 0, Math.PI * 2); ctx.fillStyle = '#ff5a4d99'; ctx.fill(); }
     } else {
       // Number spots on both sides of the ball, foreshortened as they turn away.
       for (const v of [o.p, o.p.map((c) => -c)]) {
         if (v[2] <= .05) continue;
         const sx = x + v[0] * r * .85, sy = y + v[1] * r * .85;
-        ctx.beginPath(); ctx.ellipse(sx, sy, r * .58, r * .58 * Math.max(.12, v[2]), Math.atan2(v[1], v[0]) + Math.PI / 2, 0, Math.PI * 2); ctx.fillStyle = '#f7faee'; ctx.fill();
+        ctx.beginPath(); ctx.ellipse(sx, sy, r * .58, r * .58 * Math.max(.12, v[2]), Math.atan2(v[1], v[0]) + Math.PI / 2, 0, Math.PI * 2); ctx.fillStyle = '#faf6ee'; ctx.fill();
         if (scale > .6 && v[2] > .4) {
           ctx.save(); ctx.translate(sx, sy); if (portrait) ctx.rotate(Math.PI / 2);
-          ctx.globalAlpha = Math.min(1, (v[2] - .4) * 3); ctx.fillStyle = '#142226'; ctx.font = `800 ${b.n > 9 ? 8 : 9.5}px "Space Grotesk", sans-serif`; if (b.n > 9) ctx.scale(.86, 1); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.n, 0, .5); ctx.restore();
+          ctx.globalAlpha = Math.min(1, (v[2] - .4) * 3); ctx.fillStyle = '#1b1442'; ctx.font = `800 ${b.n > 9 ? 8 : 9.5}px "Figtree", sans-serif`; if (b.n > 9) ctx.scale(.86, 1); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(b.n, 0, .5); ctx.restore();
         }
       }
     }
@@ -183,7 +183,7 @@
     shade.addColorStop(0, 'rgba(255,255,255,.55)'); shade.addColorStop(.35, 'rgba(255,255,255,0)'); shade.addColorStop(.75, 'rgba(0,0,0,0)'); shade.addColorStop(1, 'rgba(0,0,0,.38)');
     ctx.fillStyle = shade; ctx.fillRect(x - r, y - r, r * 2, r * 2);
     ctx.restore();
-    if (b.n === 8) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = '#ff4f8c80'; ctx.lineWidth = 1; ctx.stroke(); }
+    if (b.n === 8) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.strokeStyle = '#ff5a4d80'; ctx.lineWidth = 1; ctx.stroke(); }
   }
 
   // Where the cue ball would first touch something, for the aim guide.
@@ -213,47 +213,47 @@
   }
 
   function drawTable(table) {
-    ctx.fillStyle = '#0b1517'; ctx.fillRect(0, 0, E.W, E.H);
-    ctx.fillStyle = '#142f33'; ctx.fillRect(E.L - 22, E.T - 22, E.R - E.L + 44, E.B - E.T + 44);
-    ctx.fillStyle = '#17484a'; ctx.fillRect(E.L, E.T, E.R - E.L, E.B - E.T);
+    ctx.fillStyle = '#100b2e'; ctx.fillRect(0, 0, E.W, E.H);
+    ctx.fillStyle = '#221a54'; ctx.fillRect(E.L - 22, E.T - 22, E.R - E.L + 44, E.B - E.T + 44);
+    ctx.fillStyle = '#2c2470'; ctx.fillRect(E.L, E.T, E.R - E.L, E.B - E.T);
     ctx.strokeStyle = '#ffffff0d'; ctx.lineWidth = 1;
     for (let x = E.L + 30; x < E.R; x += 30) { ctx.beginPath(); ctx.moveTo(x, E.T); ctx.lineTo(x, E.B); ctx.stroke(); }
     for (let y = E.T + 30; y < E.B; y += 30) { ctx.beginPath(); ctx.moveTo(E.L, y); ctx.lineTo(E.R, y); ctx.stroke(); }
-    ctx.strokeStyle = '#cffb4b'; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 10; ctx.lineWidth = 2; ctx.strokeRect(E.L, E.T, E.R - E.L, E.B - E.T); ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#ffcf33'; ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = 10; ctx.lineWidth = 2; ctx.strokeRect(E.L, E.T, E.R - E.L, E.B - E.T); ctx.shadowBlur = 0;
     if (table.kitchen) { ctx.strokeStyle = '#ffffff40'; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.moveTo(E.HEAD_X, E.T); ctx.lineTo(E.HEAD_X, E.B); ctx.stroke(); ctx.setLineDash([]); }
     ctx.fillStyle = '#ffffff30'; for (const x of [E.L + 90, E.L + 180, E.L + 270, E.R - 90, E.R - 180, E.R - 270]) { ctx.fillRect(x - 1.5, E.T - 13, 3, 3); ctx.fillRect(x - 1.5, E.B + 10, 3, 3); }
     DRAWN_POCKETS.forEach(([x, y, r], index) => {
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = '#050a0b'; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = '#08061a'; ctx.fill();
       const called = !run && index === call && shooterOnEight();
-      ctx.strokeStyle = called ? '#cffb4b' : '#ff4f8c55'; ctx.lineWidth = called ? 3 : 2; if (called) { ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 14; } ctx.stroke(); ctx.shadowBlur = 0;
-      if (called) { ctx.save(); ctx.translate(x, y); if (portrait) ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fillStyle = '#0d1314'; ctx.fill(); ctx.strokeStyle = '#cffb4b'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore(); }
+      ctx.strokeStyle = called ? '#ffcf33' : '#ff5a4d55'; ctx.lineWidth = called ? 3 : 2; if (called) { ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = 14; } ctx.stroke(); ctx.shadowBlur = 0;
+      if (called) { ctx.save(); ctx.translate(x, y); if (portrait) ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fillStyle = '#120e2a'; ctx.fill(); ctx.strokeStyle = '#ffcf33'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore(); }
     });
   }
 
   function drawStick(cue, dx, dy, held) {
     const back = E.BR + 6 + power() * 80;
-    ctx.lineCap = 'round'; ctx.lineWidth = held ? 8 : 6; ctx.strokeStyle = held ? '#f6dca8' : '#e8c690'; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = held ? 14 : 0;
+    ctx.lineCap = 'round'; ctx.lineWidth = held ? 8 : 6; ctx.strokeStyle = held ? '#f6dca8' : '#e8c690'; ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = held ? 14 : 0;
     ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 250), cue.y - dy * (back + 250)); ctx.stroke();
     if (pull) {
       const lx = cue.x - dx * (back + 40) + dy * 22, ly = cue.y - dy * (back + 40) - dx * 22;
       ctx.save(); ctx.translate(lx, ly); if (portrait) ctx.rotate(Math.PI / 2);
-      ctx.fillStyle = pull.power < .05 ? '#f7faee99' : '#cffb4b'; ctx.font = '700 13px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = pull.power < .05 ? '#faf6ee99' : '#ffcf33'; ctx.font = '700 13px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(pull.power < .05 ? 'CANCEL' : `${Math.round(pull.power * 100)}%`, 0, 0); ctx.restore();
     }
-    ctx.shadowBlur = 0; ctx.lineWidth = 6; ctx.strokeStyle = '#68d8ff'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 8), cue.y - dy * (back + 8)); ctx.stroke(); ctx.lineCap = 'butt';
+    ctx.shadowBlur = 0; ctx.lineWidth = 6; ctx.strokeStyle = '#3fd8d0'; ctx.beginPath(); ctx.moveTo(cue.x - dx * back, cue.y - dy * back); ctx.lineTo(cue.x - dx * (back + 8), cue.y - dy * (back + 8)); ctx.stroke(); ctx.lineCap = 'butt';
   }
 
   function drawAimGuide(cue) {
     const dx = Math.cos(angle), dy = Math.sin(angle), { t, hit } = traceAim(cue, dx, dy), gx = cue.x + dx * t, gy = cue.y + dy * t;
-    ctx.strokeStyle = '#f7faee90'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 6]); ctx.beginPath(); ctx.moveTo(cue.x, cue.y); ctx.lineTo(gx, gy); ctx.stroke(); ctx.setLineDash([]);
-    ctx.beginPath(); ctx.arc(gx, gy, E.BR, 0, Math.PI * 2); ctx.strokeStyle = '#f7faeeaa'; ctx.stroke();
+    ctx.strokeStyle = '#faf6ee90'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 6]); ctx.beginPath(); ctx.moveTo(cue.x, cue.y); ctx.lineTo(gx, gy); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(gx, gy, E.BR, 0, Math.PI * 2); ctx.strokeStyle = '#faf6eeaa'; ctx.stroke();
     if (hit) {
       const ox = hit.x - gx, oy = hit.y - gy, d = Math.hypot(ox, oy) || 1, nx = ox / d, ny = oy / d;
-      ctx.strokeStyle = '#cffb4bcc'; ctx.beginPath(); ctx.moveTo(hit.x, hit.y); ctx.lineTo(hit.x + nx * 70, hit.y + ny * 70); ctx.stroke();
+      ctx.strokeStyle = '#ffcf33cc'; ctx.beginPath(); ctx.moveTo(hit.x, hit.y); ctx.lineTo(hit.x + nx * 70, hit.y + ny * 70); ctx.stroke();
       // Where the cue ball heads after contact: the part of its path the object ball doesn't take, plus follow or draw.
       const dn = dx * nx + dy * ny, speed = E.MAX_SPEED * Math.max(.05, power()), top = spin.y * E.FOLLOW * Math.exp(-E.FOLLOW_FADE * t / speed);
       const ax = dx - nx * dn + dx * top, ay = dy - ny * dn + dy * top, length = Math.min(110, Math.hypot(ax, ay) * 110);
-      if (length > 4) { const a = Math.hypot(ax, ay); ctx.strokeStyle = '#ff4f8ccc'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + ax / a * length, gy + ay / a * length); ctx.stroke(); ctx.setLineDash([]); }
+      if (length > 4) { const a = Math.hypot(ax, ay); ctx.strokeStyle = '#ff5a4dcc'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + ax / a * length, gy + ay / a * length); ctx.stroke(); ctx.setLineDash([]); }
       // On the black, the call follows the aim until the player taps a pocket themselves.
       if (shooterOnEight() && !callPicked) call = hit.n === 8 ? pocketAlong(hit, nx, ny) : null;
     } else if (shooterOnEight() && !callPicked) call = null;
@@ -277,7 +277,7 @@
     const cue = cuePosition();
     if (!run && state.ballInHand && place) {
       drawBall(state.balls[0], place.x, place.y);
-      if (canShoot()) { ctx.beginPath(); ctx.arc(place.x, place.y, E.BR + 7, 0, Math.PI * 2); ctx.strokeStyle = '#cffb4b'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]); }
+      if (canShoot()) { ctx.beginPath(); ctx.arc(place.x, place.y, E.BR + 7, 0, Math.PI * 2); ctx.strokeStyle = '#ffcf33'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]); }
     }
     if (!run && state.winner === null && cue && !(state.ballInHand && !place)) {
       if (canShoot()) drawAimGuide(cue);
@@ -291,7 +291,7 @@
   }
 
   // A short message across the middle of the table after a shot (fouls, groups, pots).
-  function showBanner(text, color = '#cffb4b') { banner = { text, color, born: performance.now() }; startFx(); }
+  function showBanner(text, color = '#ffcf33') { banner = { text, color, born: performance.now() }; startFx(); }
   function drawBanner(now) {
     if (!banner) return;
     const age = now - banner.born;
@@ -299,8 +299,8 @@
     const alpha = age < 150 ? age / 150 : age > 1300 ? (1700 - age) / 400 : 1;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const w = canvas.width / dpr, h = canvas.height / dpr, size = Math.min(30, w / 14);
-    ctx.globalAlpha = alpha * .82; ctx.fillStyle = '#0b1517'; ctx.fillRect(0, h / 2 - size * 1.1, w, size * 2.2);
-    ctx.globalAlpha = alpha; ctx.fillStyle = banner.color; ctx.font = `700 ${size}px "Space Grotesk", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.globalAlpha = alpha * .82; ctx.fillStyle = '#100b2e'; ctx.fillRect(0, h / 2 - size * 1.1, w, size * 2.2);
+    ctx.globalAlpha = alpha; ctx.fillStyle = banner.color; ctx.font = `700 ${size}px "Figtree", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.shadowColor = banner.color; ctx.shadowBlur = 12; ctx.fillText(banner.text, w / 2, h / 2 + 1); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
   }
   // Keeps redrawing while a banner, sinking ball or settling ball is still animating between shots.
@@ -350,7 +350,7 @@
     startFx();
     if (next.winner !== null) { gameOver(); return; }
     const foul = next.message.match(/^FOUL: (.+?) —/);
-    if (foul) { showBanner(`FOUL · ${foul[1]}`, '#ff4f8c'); Sound?.foul(); }
+    if (foul) { showBanner(`FOUL · ${foul[1]}`, '#ff5a4d'); Sound?.foul(); }
     else if (next.groups && !before.groups) showBanner(`${names()[before.turn]}: ${next.groups[before.turn].toUpperCase()}`);
     else if (next.turn === before.turn && !before.isBreak) showBanner(E.onEight(next, next.turn) ? 'ON THE BLACK!' : 'POTTED · SHOOT AGAIN');
     else if (before.isBreak && next.turn === before.turn) showBanner('GREAT BREAK · SHOOT AGAIN');
@@ -378,7 +378,7 @@
 
   async function shoot() {
     if (!canShoot()) return;
-    if (shooterOnEight() && call === null) { $('#pool-status').textContent = 'CALL YOUR POCKET FOR THE BLACK — TAP THE POCKET FIRST'; showBanner('CALL A POCKET FOR THE BLACK', '#ff4f8c'); return; }
+    if (shooterOnEight() && call === null) { $('#pool-status').textContent = 'CALL YOUR POCKET FOR THE BLACK — TAP THE POCKET FIRST'; showBanner('CALL A POCKET FOR THE BLACK', '#ff5a4d'); return; }
     Sound?.unlock();
     const cue = cuePosition(), speed = E.MAX_SPEED * Math.max(.05, power());
     const shot = E.normalizeShot(state, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, cueX: cue.x, cueY: cue.y, spinX: spin.x, spinY: spin.y, call: shooterOnEight() ? call : null });

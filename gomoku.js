@@ -6,7 +6,7 @@
   if (!canvas || !G) return;
   const ctx = canvas.getContext('2d');
   const W = 660, CELL = 40, X0 = (W - (G.N - 1) * CELL) / 2, R = 17;
-  const COLORS = ['#cffb4b', '#ff4f8c'];
+  const COLORS = ['#ffcf33', '#ff5a4d'];
   const STARS = [[3, 3], [11, 3], [7, 7], [3, 11], [11, 11]];
   const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', ROOM_TTL = 24 * 60 * 60;
   const REACTIONS = ['NICE MOVE!', 'UNLUCKY', 'GOOD GAME', 'REMATCH?', 'HURRY UP 😅', '🔥', '😂', '👏'];
@@ -45,13 +45,13 @@
     ctx.beginPath(); ctx.arc(x - R * .3 * scale, y - R * .3 * scale, R * .32 * scale, 0, Math.PI * 2); ctx.fillStyle = '#ffffff55'; ctx.fill(); ctx.globalAlpha = 1;
   }
   function draw() {
-    ctx.fillStyle = '#0b1517'; ctx.fillRect(0, 0, W, W);
+    ctx.fillStyle = '#100b2e'; ctx.fillRect(0, 0, W, W);
     const end = X0 + (G.N - 1) * CELL;
-    ctx.strokeStyle = '#cffb4b'; ctx.lineWidth = 2; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 10; ctx.strokeRect(X0 - 26, X0 - 26, end - X0 + 52, end - X0 + 52); ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#2a6366'; ctx.lineWidth = 1.5; ctx.beginPath();
+    ctx.strokeStyle = '#ffcf33'; ctx.lineWidth = 2; ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = 10; ctx.strokeRect(X0 - 26, X0 - 26, end - X0 + 52, end - X0 + 52); ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#4a3e99'; ctx.lineWidth = 1.5; ctx.beginPath();
     for (let i = 0; i < G.N; i += 1) { const p = X0 + i * CELL; ctx.moveTo(X0, p); ctx.lineTo(end, p); ctx.moveTo(p, X0); ctx.lineTo(p, end); }
     ctx.stroke();
-    ctx.fillStyle = '#3f8a8d';
+    ctx.fillStyle = '#6a5cc4';
     for (const [col, row] of STARS) { const { x, y } = point(G.at(col, row)); ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill(); }
     for (let index = 0; index < G.SIZE; index += 1) {
       const value = state.board[index];
@@ -60,10 +60,10 @@
     }
     if (anim) { const { x, y } = point(anim.index); stone(x, y, anim.seat, 1, anim.scale); }
     // mark the latest stone so it's easy to see what just happened
-    if (state.last && !anim && !state.line) { const { x, y } = point(state.last.index); ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fillStyle = '#0b1517'; ctx.fill(); }
+    if (state.last && !anim && !state.line) { const { x, y } = point(state.last.index); ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fillStyle = '#100b2e'; ctx.fill(); }
     if (state.line && !anim) {
       const pulse = .55 + .45 * Math.sin(performance.now() / 180), first = point(state.line[0]), last = point(state.line[state.line.length - 1]);
-      ctx.strokeStyle = '#f7faee'; ctx.lineWidth = 5; ctx.globalAlpha = pulse; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(first.x, first.y); ctx.lineTo(last.x, last.y); ctx.stroke();
+      ctx.strokeStyle = '#faf6ee'; ctx.lineWidth = 5; ctx.globalAlpha = pulse; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(first.x, first.y); ctx.lineTo(last.x, last.y); ctx.stroke();
       for (const index of state.line) { const { x, y } = point(index); ctx.beginPath(); ctx.arc(x, y, R + 4, 0, Math.PI * 2); ctx.stroke(); }
       ctx.globalAlpha = 1; ctx.lineCap = 'butt';
     }
@@ -348,7 +348,7 @@
     const seats = $('#gm-seats'); seats.replaceChildren();
     [[online.room.hostName, 0], [online.room.guestName, 1]].forEach(([name, seat]) => {
       const item = document.createElement('li'), who = document.createElement('b'), role = document.createElement('span');
-      who.textContent = name ? `${clean(name)} · ${(state.match || [0, 0])[seat]}` : 'OPEN SEAT'; who.style.color = name ? seat === 0 ? '#5f8d12' : '#d1336d' : '';
+      who.textContent = name ? `${clean(name)} · ${(state.match || [0, 0])[seat]}` : 'OPEN SEAT'; who.style.color = name ? seat === 0 ? '#9a6f00' : '#d13a2e' : '';
       role.textContent = [seat === online.seat ? 'YOU' : '', !over() && name && state.turn === seat && online.room.status !== 'waiting' ? 'TO MOVE' : ''].filter(Boolean).join(' · ') || (seat === 0 ? 'HOST' : 'GUEST');
       item.append(who, role); seats.append(item);
     });

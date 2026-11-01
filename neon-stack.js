@@ -4,7 +4,7 @@
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const COLS = 10, ROWS = 20, CELL = 30, OFFSET_X = 50;
-  const COLORS = { I: '#68d8ff', J: '#7189ff', L: '#ff9f43', O: '#ffe66d', S: '#cffb4b', T: '#c77dff', Z: '#ff4f8c' };
+  const COLORS = { I: '#3fd8d0', J: '#7189ff', L: '#ff9f43', O: '#ffcf33', S: '#4fe08a', T: '#a78bff', Z: '#ff5a4d' };
   const SHAPES = {
     I: [[1, 1, 1, 1]], J: [[1, 0, 0], [1, 1, 1]], L: [[0, 0, 1], [1, 1, 1]],
     O: [[1, 1], [1, 1]], S: [[0, 1, 1], [1, 1, 0]], T: [[0, 1, 0], [1, 1, 1]], Z: [[1, 1, 0], [0, 1, 1]],
@@ -85,7 +85,7 @@
     target.shape.forEach((row, y) => row.forEach((cell, x) => { if (cell && yPosition + y >= 0) drawCell(target.x + x, yPosition + y, COLORS[target.type], alpha); }));
   }
   function draw() {
-    ctx.fillStyle = '#142226'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#1b1442'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = '#ffffff0a'; ctx.lineWidth = 1;
     for (let x = 0; x <= COLS; x += 1) { ctx.beginPath(); ctx.moveTo(OFFSET_X + x * CELL, 0); ctx.lineTo(OFFSET_X + x * CELL, 600); ctx.stroke(); }
     for (let y = 0; y <= ROWS; y += 1) { ctx.beginPath(); ctx.moveTo(OFFSET_X, y * CELL); ctx.lineTo(OFFSET_X + COLS * CELL, y * CELL); ctx.stroke(); }

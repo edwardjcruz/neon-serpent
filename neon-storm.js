@@ -70,20 +70,20 @@
   }
   function drawObject(item) {
     ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(item.rotation); ctx.shadowBlur = 14;
-    if (item.type === 'shield') { ctx.strokeStyle = '#cffb4b'; ctx.lineWidth = 5; ctx.shadowColor = '#cffb4b'; ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#cffb4b'; ctx.font = '18px monospace'; ctx.textAlign = 'center'; ctx.fillText('◇', 0, 6); }
-    else if (item.type === 'slow') { ctx.fillStyle = '#68d8ff'; ctx.shadowColor = '#68d8ff'; ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#142226'; ctx.font = '18px monospace'; ctx.textAlign = 'center'; ctx.fillText('◷', 0, 6); }
-    else if (item.type === 'shard') { ctx.fillStyle = '#c77dff'; ctx.shadowColor = '#c77dff'; ctx.beginPath(); ctx.moveTo(0, -item.r); ctx.lineTo(item.r * .7, item.r); ctx.lineTo(-item.r * .7, item.r); ctx.closePath(); ctx.fill(); }
-    else { ctx.fillStyle = '#ff4f8c'; ctx.shadowColor = '#ff4f8c'; ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#14222655'; ctx.beginPath(); ctx.arc(-4, -3, item.r * .28, 0, Math.PI * 2); ctx.fill(); }
+    if (item.type === 'shield') { ctx.strokeStyle = '#ffcf33'; ctx.lineWidth = 5; ctx.shadowColor = '#ffcf33'; ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#ffcf33'; ctx.font = '18px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('◇', 0, 6); }
+    else if (item.type === 'slow') { ctx.fillStyle = '#3fd8d0'; ctx.shadowColor = '#3fd8d0'; ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#1b1442'; ctx.font = '18px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('◷', 0, 6); }
+    else if (item.type === 'shard') { ctx.fillStyle = '#a78bff'; ctx.shadowColor = '#a78bff'; ctx.beginPath(); ctx.moveTo(0, -item.r); ctx.lineTo(item.r * .7, item.r); ctx.lineTo(-item.r * .7, item.r); ctx.closePath(); ctx.fill(); }
+    else { ctx.fillStyle = '#ff5a4d'; ctx.shadowColor = '#ff5a4d'; ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#1b144255'; ctx.beginPath(); ctx.arc(-4, -3, item.r * .28, 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
   }
   function draw() {
-    ctx.fillStyle = '#142226'; ctx.fillRect(0, 0, 600, 600);
+    ctx.fillStyle = '#1b1442'; ctx.fillRect(0, 0, 600, 600);
     ctx.strokeStyle = '#ffffff0c'; for (let x = 0; x < 600; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x - 70, 600); ctx.stroke(); }
     objects.forEach(drawObject); ctx.save();
     if (invulnerable > 0 && Math.floor(invulnerable * 10) % 2) ctx.globalAlpha = .3;
-    ctx.fillStyle = '#cffb4b'; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.roundRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height, 7); ctx.fill();
-    ctx.fillStyle = '#142226'; ctx.fillRect(player.x - 7, player.y - 5, 14, 6); if (shield) { ctx.strokeStyle = '#68d8ff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(player.x, player.y, 42, Math.PI, Math.PI * 2); ctx.stroke(); } ctx.restore();
-    if (slowTime > 0) { ctx.fillStyle = '#68d8ff'; ctx.font = '700 11px monospace'; ctx.fillText(`SLOW TIME ${slowTime.toFixed(1)}s`, 18, 25); }
+    ctx.fillStyle = '#ffcf33'; ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.roundRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height, 7); ctx.fill();
+    ctx.fillStyle = '#1b1442'; ctx.fillRect(player.x - 7, player.y - 5, 14, 6); if (shield) { ctx.strokeStyle = '#3fd8d0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(player.x, player.y, 42, Math.PI, Math.PI * 2); ctx.stroke(); } ctx.restore();
+    if (slowTime > 0) { ctx.fillStyle = '#3fd8d0'; ctx.font = '700 11px "JetBrains Mono", monospace'; ctx.fillText(`SLOW TIME ${slowTime.toFixed(1)}s`, 18, 25); }
   }
   function loop(time) { if (!playing) return; const delta = Math.min(.035, (time - lastTime) / 1000 || 0); lastTime = time; if (!paused) update(delta); draw(); frame = requestAnimationFrame(loop); }
   function start() { cancelAnimationFrame(frame); reset(); playing = true; paused = false; lastTime = performance.now(); $('#storm-pause').textContent = 'Ⅱ'; $('#storm-overlay').hidden = true; $('#storm-submit').hidden = true; window.trackGameEvent?.('game_started', 'neon_storm'); frame = requestAnimationFrame(loop); }

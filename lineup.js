@@ -6,7 +6,7 @@
   if (!canvas || !G) return;
   const ctx = canvas.getContext('2d');
   const W = 700, H = 660, CELL = 92, X0 = (W - G.COLS * CELL) / 2, Y0 = 92, R = 36;
-  const COLORS = ['#cffb4b', '#ff4f8c'];
+  const COLORS = ['#ffcf33', '#ff5a4d'];
   const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', ROOM_TTL = 24 * 60 * 60;
   const REACTIONS = ['NICE MOVE!', 'UNLUCKY', 'GOOD GAME', 'REMATCH?', 'HURRY UP 😅', '🔥', '😂', '👏'];
 
@@ -38,24 +38,24 @@
   function disc(x, y, seat, alpha = 1) {
     ctx.globalAlpha = alpha; ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2);
     ctx.fillStyle = COLORS[seat]; ctx.shadowColor = COLORS[seat]; ctx.shadowBlur = 16; ctx.fill(); ctx.shadowBlur = 0;
-    ctx.beginPath(); ctx.arc(x, y, R * .62, 0, Math.PI * 2); ctx.strokeStyle = '#0b151744'; ctx.lineWidth = 3; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(x, y, R * .62, 0, Math.PI * 2); ctx.strokeStyle = '#100b2e44'; ctx.lineWidth = 3; ctx.stroke(); ctx.globalAlpha = 1;
   }
   function draw() {
-    ctx.fillStyle = '#0b1517'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#100b2e'; ctx.fillRect(0, 0, W, H);
     // a falling disc sits behind the board face, so draw it first
     if (anim) disc(anim.x, anim.y, anim.seat);
     // board face with holes punched out
     ctx.save(); ctx.beginPath(); ctx.rect(X0 - 10, Y0 - 10, G.COLS * CELL + 20, G.ROWS * CELL + 20);
     for (let col = 0; col < G.COLS; col += 1) for (let row = 0; row < G.ROWS; row += 1) { const { x, y } = cellCenter(col, row); ctx.moveTo(x + R + 3, y); ctx.arc(x, y, R + 3, 0, Math.PI * 2, true); }
-    ctx.fillStyle = '#17484a'; ctx.fill('evenodd'); ctx.restore();
-    ctx.strokeStyle = '#cffb4b'; ctx.lineWidth = 2; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 10; ctx.strokeRect(X0 - 10, Y0 - 10, G.COLS * CELL + 20, G.ROWS * CELL + 20); ctx.shadowBlur = 0;
+    ctx.fillStyle = '#2c2470'; ctx.fill('evenodd'); ctx.restore();
+    ctx.strokeStyle = '#ffcf33'; ctx.lineWidth = 2; ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = 10; ctx.strokeRect(X0 - 10, Y0 - 10, G.COLS * CELL + 20, G.ROWS * CELL + 20); ctx.shadowBlur = 0;
     for (let col = 0; col < G.COLS; col += 1) for (let row = 0; row < G.ROWS; row += 1) {
       const value = state.board[G.at(col, row)], { x, y } = cellCenter(col, row);
       if (value !== '.' && !(anim && anim.col === col && anim.row === row)) disc(x, y, Number(value));
     }
     if (state.line && !anim) {
       const pulse = .55 + .45 * Math.sin(performance.now() / 180), cells = state.line.map((index) => cellCenter(index % G.COLS, Math.floor(index / G.COLS)));
-      ctx.strokeStyle = '#f7faee'; ctx.lineWidth = 6; ctx.globalAlpha = pulse; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(cells[0].x, cells[0].y); ctx.lineTo(cells[3].x, cells[3].y); ctx.stroke();
+      ctx.strokeStyle = '#faf6ee'; ctx.lineWidth = 6; ctx.globalAlpha = pulse; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(cells[0].x, cells[0].y); ctx.lineTo(cells[3].x, cells[3].y); ctx.stroke();
       for (const { x, y } of cells) { ctx.beginPath(); ctx.arc(x, y, R + 6, 0, Math.PI * 2); ctx.stroke(); }
       ctx.globalAlpha = 1; ctx.lineCap = 'butt';
     }
@@ -347,7 +347,7 @@
     const seats = $('#lu-seats'); seats.replaceChildren();
     [[online.room.hostName, 0], [online.room.guestName, 1]].forEach(([name, seat]) => {
       const item = document.createElement('li'), who = document.createElement('b'), role = document.createElement('span');
-      who.textContent = name ? `${clean(name)} · ${(state.match || [0, 0])[seat]}` : 'OPEN SEAT'; who.style.color = name ? COLORS[seat] === '#cffb4b' ? '#5f8d12' : '#d1336d' : '';
+      who.textContent = name ? `${clean(name)} · ${(state.match || [0, 0])[seat]}` : 'OPEN SEAT'; who.style.color = name ? COLORS[seat] === '#ffcf33' ? '#9a6f00' : '#d13a2e' : '';
       role.textContent = [seat === online.seat ? 'YOU' : '', !over() && name && state.turn === seat && online.room.status !== 'waiting' ? 'TO MOVE' : ''].filter(Boolean).join(' · ') || (seat === 0 ? 'HOST' : 'GUEST');
       item.append(who, role); seats.append(item);
     });

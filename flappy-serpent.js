@@ -15,11 +15,11 @@
   function addGate() { const mobile = mobileMode(), gap = Math.max(mobile ? 195 : 160, (mobile ? 245 : 215) - Math.floor(score / 50) * (mobile ? 6 : 8)), top = 65 + Math.random() * (600 - gap - 145); gates.push({ x: 640, top, gap, passed: false }); }
   function boost() { if (!playing) return; pilot.velocity = mobileMode() ? -5.9 : -6.2; tone(440); }
   function draw() {
-    ctx.fillStyle = '#142226'; ctx.fillRect(0, 0, 600, 600);
+    ctx.fillStyle = '#1b1442'; ctx.fillRect(0, 0, 600, 600);
     ctx.strokeStyle = '#ffffff0a'; for (let n = 0; n < 600; n += 24) { ctx.beginPath(); ctx.moveTo(n, 0); ctx.lineTo(n, 600); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, n); ctx.lineTo(600, n); ctx.stroke(); }
-    gates.forEach((gate) => { ctx.fillStyle = '#68d8ff'; ctx.shadowColor = '#68d8ff'; ctx.shadowBlur = 15; ctx.fillRect(gate.x, 0, 62, gate.top); ctx.fillRect(gate.x, gate.top + gate.gap, 62, 600); });
-    ctx.shadowBlur = 0; for (let tail = 4; tail >= 0; tail -= 1) { ctx.beginPath(); ctx.arc(pilot.x - tail * 12, pilot.y + Math.sin(Date.now() / 90 + tail) * 4, Math.max(7, pilot.radius - tail * 1.5), 0, Math.PI * 2); ctx.fillStyle = tail ? '#8fbd35' : '#cffb4b'; ctx.fill(); }
-    ctx.fillStyle = '#142226'; ctx.beginPath(); ctx.arc(pilot.x + 5, pilot.y - 5, 3, 0, Math.PI * 2); ctx.fill();
+    gates.forEach((gate) => { ctx.fillStyle = '#3fd8d0'; ctx.shadowColor = '#3fd8d0'; ctx.shadowBlur = 15; ctx.fillRect(gate.x, 0, 62, gate.top); ctx.fillRect(gate.x, gate.top + gate.gap, 62, 600); });
+    ctx.shadowBlur = 0; for (let tail = 4; tail >= 0; tail -= 1) { ctx.beginPath(); ctx.arc(pilot.x - tail * 12, pilot.y + Math.sin(Date.now() / 90 + tail) * 4, Math.max(7, pilot.radius - tail * 1.5), 0, Math.PI * 2); ctx.fillStyle = tail ? '#d9a514' : '#ffcf33'; ctx.fill(); }
+    ctx.fillStyle = '#1b1442'; ctx.beginPath(); ctx.arc(pilot.x + 5, pilot.y - 5, 3, 0, Math.PI * 2); ctx.fill();
   }
   function crash() {
     playing = false; cancelAnimationFrame(frame); tone(120);

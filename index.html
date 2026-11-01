@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="description" content="Play thirteen free arcade games online at Neon Serpent, including Checkers, Gomoku (five in a row), Line Up (four in a row), Neon Cue (pool vs the computer or friends in private online rooms), Pong, Snake, Neon Storm, Flappy Serpent, block games, Minesweeper, Breakout, and Bubble Shooter.">
   <meta name="robots" content="index,follow">
-  <meta name="theme-color" content="#142226">
+  <meta name="theme-color" content="#1b1442">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Neon Serpent">
   <meta property="og:title" content="Neon Serpent Arcade — Thirteen Free Games Online">
@@ -17,6 +17,10 @@
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Neon Serpent","description":"A free browser arcade with thirteen neon games and global leaderboards."},{"@type":"ItemList","name":"Neon Serpent arcade games","numberOfItems":13,"itemListElement":[{"@type":"ListItem","position":1,"item":{"@type":"VideoGame","name":"Neon Serpent","genre":"Arcade","gamePlatform":"Web browser","description":"A modern online Snake game with score multipliers and increasing speed."}},{"@type":"ListItem","position":2,"item":{"@type":"VideoGame","name":"Neon Pong","genre":"Arcade","gamePlatform":"Web browser","description":"A Pong game against a computer opponent with three difficulties, touch controls, match scoring, and global leaderboards."}},{"@type":"ListItem","position":3,"item":{"@type":"VideoGame","name":"Neon Storm","genre":"Arcade","gamePlatform":"Web browser","description":"A falling-object avoidance game with escalating hazards, power-ups, near-miss bonuses, and global high scores."}},{"@type":"ListItem","position":4,"item":{"@type":"VideoGame","name":"Flappy Serpent","genre":"Arcade","gamePlatform":"Web browser","description":"A one-tap flying game with neon gates and increasing speed."}},{"@type":"ListItem","position":5,"item":{"@type":"VideoGame","name":"Neon Stack","genre":"Puzzle","gamePlatform":"Web browser","description":"A falling-block puzzle game with ghost-piece guidance, line clears, and escalating levels."}},{"@type":"ListItem","position":6,"item":{"@type":"VideoGame","name":"Neon Tower","genre":"Arcade","gamePlatform":"Web browser","description":"An endless one-tap arcade Stacker game with whole cubes, scrolling tower heights, and global high scores."}},{"@type":"ListItem","position":7,"item":{"@type":"VideoGame","name":"Neon Mines","genre":"Puzzle","gamePlatform":"Web browser","description":"A mobile-friendly Minesweeper game with three difficulty levels and timed clears."}},{"@type":"ListItem","position":8,"item":{"@type":"VideoGame","name":"Neon Breakout","genre":"Arcade","gamePlatform":"Web browser","description":"A neon brick-breaking game with waves, power cores, and high scores."}},{"@type":"ListItem","position":9,"item":{"@type":"VideoGame","name":"Bubble Shooter","genre":"Puzzle","gamePlatform":"Web browser","description":"Aim and match colorful bubbles using a trajectory guide and special bubbles."}},{"@type":"ListItem","position":10,"item":{"@type":"VideoGame","name":"Neon Cue","genre":"Sports","gamePlatform":"Web browser","playMode":["MultiPlayer"],"description":"A pool game against a computer opponent with three difficulties, pass-and-play, or private online rooms to play friends in real time."}},{"@type":"ListItem","position":11,"item":{"@type":"VideoGame","name":"Line Up","genre":"Puzzle","gamePlatform":"Web browser","playMode":["SinglePlayer","MultiPlayer"],"description":"A four-in-a-row disc-dropping game against a computer opponent with three difficulties, pass-and-play, or private online rooms with friends."}},{"@type":"ListItem","position":12,"item":{"@type":"VideoGame","name":"Gomoku","genre":"Puzzle","gamePlatform":"Web browser","playMode":["SinglePlayer","MultiPlayer"],"description":"A five-in-a-row stone-placing game on a 15×15 board against a computer opponent with three difficulties, pass-and-play, or private online rooms with friends."}},{"@type":"ListItem","position":13,"item":{"@type":"VideoGame","name":"Checkers","genre":"Board","gamePlatform":"Web browser","playMode":["SinglePlayer","MultiPlayer"],"description":"Classic checkers on an 8×8 board with compulsory jumps, multi-jumps and kings, against a computer opponent with three difficulties, pass-and-play, or private online rooms with friends."}}]}]}</script>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="arcade.css">
+  <link rel="stylesheet" href="mobile.css">
+  <!-- Browsers only offer randomUUID over https; this keeps player ids working when testing over plain http on a local network. -->
+  <script>if(!crypto.randomUUID)crypto.randomUUID=function(){return'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,function(c){return(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)})}</script>
+  <script>window.neonPhoneQuery='(max-width:760px),(pointer:coarse) and (max-height:500px)';if(matchMedia(neonPhoneQuery).matches){document.documentElement.classList.add('phone');if(!/[?&](room|lineup|gomoku|checkers)=/.test(location.search))document.documentElement.classList.add('at-home')}</script>
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-W6RSG8H9');</script>
   <!-- End Google Tag Manager -->
@@ -32,6 +36,9 @@
     <a class="arcade-brand" href="#arcade">NEON SERPENT</a>
     <div><button class="arcade-tab active" data-game="snake">SERPENT</button><button class="arcade-tab" data-game="pong">PONG</button><button class="arcade-tab" data-game="pool">CUE</button><button class="arcade-tab" data-game="lineup">LINE UP</button><button class="arcade-tab" data-game="gomoku">GOMOKU</button><button class="arcade-tab" data-game="checkers">CHECKERS</button><button class="arcade-tab" data-game="storm">STORM</button><button class="arcade-tab" data-game="flappy">FLAPPY</button><button class="arcade-tab" data-game="stack">STACK</button><button class="arcade-tab" data-game="tower">TOWER</button><button class="arcade-tab" data-game="mines">MINES</button><button class="arcade-tab" data-game="breakout">BREAKOUT</button><button class="arcade-tab" data-game="shooter">SHOOTER</button></div>
   </nav>
+  <div class="home-screen" id="home"><div class="home-brand"><small>13 GAMES · NO SIGN-UP</small><h1>NEON <i>SERPENT</i></h1></div><div id="home-tiles"></div></div>
+  <div class="app-bar"><button id="app-back" aria-label="Back to all games">‹ GAMES</button><span id="app-title"></span><button id="app-panel" hidden></button></div>
+  <div class="app-scrim" id="app-scrim"></div>
   <main id="arcade">
     <section class="game" id="snake-game">
       <header><div class="logo"><b>⌁</b><span><small>ARCADE PROTOCOL</small><h1>NEON <i>SERPENT</i></h1></span></div><button id="sound" aria-label="Toggle sound">♪</button></header>
@@ -155,6 +162,7 @@
       <section class="seo-copy" aria-label="About Checkers"><h2>Checkers: Play Online vs the Computer or Friends</h2><p>Play classic checkers (draughts) on an 8×8 board with compulsory jumps, multi-jumps and kings. Take on an Easy, Medium or Hard computer opponent, pass-and-play on one device, or open a private room and play a friend online in real time with head-to-head records.</p></section>
     </section>
     <aside>
+      <button class="app-sheet-close" id="app-sheet-close">CLOSE</button>
       <section class="leaderboard-panel" id="snake-leaderboard">
         <div class="leader-head"><span><small>NETWORK UPLINK</small><h2>GLOBAL<br><i>TOP PILOTS</i></h2></span><small class="live">● LIVE</small></div>
         <ol id="leaders"></ol>
@@ -237,6 +245,7 @@
   <script src="checkers.js"></script>
   <script src="analytics.js"></script>
   <script src="arcade-switcher.js"></script>
+  <script src="mobile.js"></script>
   <script type="module" src="leaderboard.js"></script>
 </body>
 </html>

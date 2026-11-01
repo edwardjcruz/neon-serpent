@@ -17,7 +17,7 @@
     const rows = Math.min(4 + wave, 7), columns = 8, gap = 8, brickWidth = (width - 80 - gap * (columns - 1)) / columns;
     bricks = Array.from({ length: rows * columns }, (_, index) => ({
       x: 40 + (index % columns) * (brickWidth + gap), y: 56 + Math.floor(index / columns) * 31,
-      width: brickWidth, height: 21, alive: true, color: ['#cffb4b', '#68d8ff', '#ff4f8c'][Math.floor(index / columns) % 3],
+      width: brickWidth, height: 21, alive: true, color: ['#ffcf33', '#3fd8d0', '#ff5a4d'][Math.floor(index / columns) % 3],
     }));
   }
 
@@ -41,14 +41,14 @@
   }
 
   function draw() {
-    ctx.fillStyle = '#142226'; ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#1b1442'; ctx.fillRect(0, 0, width, height);
     ctx.strokeStyle = '#ffffff0c'; ctx.lineWidth = 1;
     for (let grid = 0; grid < width; grid += 24) { ctx.beginPath(); ctx.moveTo(grid, 0); ctx.lineTo(grid, height); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, grid); ctx.lineTo(width, grid); ctx.stroke(); }
     bricks.forEach((brick) => { if (brick.alive) { ctx.fillStyle = brick.color; ctx.shadowColor = brick.color; ctx.shadowBlur = 12; ctx.fillRect(brick.x, brick.y, brick.width, brick.height); } });
     ctx.shadowBlur = 0;
-    if (power) { ctx.fillStyle = '#f6f9ed'; ctx.fillRect(power.x - 8, power.y - 8, 16, 16); ctx.fillStyle = '#142226'; ctx.font = '16px sans-serif'; ctx.fillText('+', power.x - 5, power.y + 6); }
-    ctx.fillStyle = '#cffb4b'; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 18; ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
-    ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); ctx.fillStyle = '#f6f9ed'; ctx.shadowColor = '#f6f9ed'; ctx.shadowBlur = 18; ctx.fill(); ctx.shadowBlur = 0;
+    if (power) { ctx.fillStyle = '#f9f5ed'; ctx.fillRect(power.x - 8, power.y - 8, 16, 16); ctx.fillStyle = '#1b1442'; ctx.font = '16px sans-serif'; ctx.fillText('+', power.x - 5, power.y + 6); }
+    ctx.fillStyle = '#ffcf33'; ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = 18; ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); ctx.fillStyle = '#f9f5ed'; ctx.shadowColor = '#f9f5ed'; ctx.shadowBlur = 18; ctx.fill(); ctx.shadowBlur = 0;
   }
 
   function endRun() {

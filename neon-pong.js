@@ -58,11 +58,11 @@
     if (ball.x < -25) point(false); else if (ball.x > 625) point(true);
   }
   function draw() {
-    ctx.fillStyle = '#142226'; ctx.fillRect(0, 0, 600, 600); ctx.strokeStyle = '#ffffff20'; ctx.setLineDash([10, 12]); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 600); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = '#cffb4b'; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 16; ctx.fillRect(player.x - player.w / 2, player.y - player.h / 2, player.w, player.h);
-    ctx.fillStyle = '#ff4f8c'; ctx.shadowColor = '#ff4f8c'; ctx.fillRect(cpu.x - cpu.w / 2, cpu.y - cpu.h / 2, cpu.w, cpu.h);
-    ctx.fillStyle = '#f7faee'; ctx.shadowColor = '#68d8ff'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
-    if (serveDelay > 0) { ctx.fillStyle = '#ffffff80'; ctx.font = '700 12px monospace'; ctx.textAlign = 'center'; ctx.fillText('GET READY', 300, 280); }
+    ctx.fillStyle = '#1b1442'; ctx.fillRect(0, 0, 600, 600); ctx.strokeStyle = '#ffffff20'; ctx.setLineDash([10, 12]); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 600); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#ffcf33'; ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = 16; ctx.fillRect(player.x - player.w / 2, player.y - player.h / 2, player.w, player.h);
+    ctx.fillStyle = '#ff5a4d'; ctx.shadowColor = '#ff5a4d'; ctx.fillRect(cpu.x - cpu.w / 2, cpu.y - cpu.h / 2, cpu.w, cpu.h);
+    ctx.fillStyle = '#faf6ee'; ctx.shadowColor = '#3fd8d0'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    if (serveDelay > 0) { ctx.fillStyle = '#ffffff80'; ctx.font = '700 12px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('GET READY', 300, 280); }
   }
   function loop(time) { if (!playing) return; const delta = Math.min(.035, (time - lastTime) / 1000 || 0); lastTime = time; if (!paused) update(delta); draw(); frame = requestAnimationFrame(loop); }
   function start() { cancelAnimationFrame(frame); reset(); playing = true; paused = false; lastTime = performance.now(); $('#pong-pause').textContent = 'Ⅱ'; $('#pong-overlay').hidden = true; $('#pong-submit').hidden = true; window.trackGameEvent?.('game_started', 'neon_pong', { difficulty }); frame = requestAnimationFrame(loop); }

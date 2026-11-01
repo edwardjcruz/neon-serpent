@@ -6,7 +6,7 @@
   if (!canvas || !C) return;
   const ctx = canvas.getContext('2d');
   const W = 640, CELL = W / C.N, R = CELL * .36;
-  const COLORS = ['#cffb4b', '#ff4f8c'];
+  const COLORS = ['#ffcf33', '#ff5a4d'];
   const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', ROOM_TTL = 24 * 60 * 60;
   const REACTIONS = ['NICE MOVE!', 'UNLUCKY', 'GOOD GAME', 'REMATCH?', 'HURRY UP 😅', '🔥', '😂', '👏'];
   // Each online game's invite parameter, so a code typed into the wrong game opens the right one.
@@ -28,7 +28,7 @@
     if (mode === 'cpu') return ['YOU', `CPU · ${level.toUpperCase()}`];
     return ['PLAYER 1', 'PLAYER 2'];
   };
-  const say = (text) => text.replace(/PLAYER ([12])/g, (_, seat) => names()[seat - 1]).replace('YOU WINS', 'YOU WIN');
+  const say = (text) => text.replace(/PLAYER ([12])/g, (_, seat) => names()[seat - 1]).replace('YOU WINS', 'YOU WIN').replace('YOU TO MOVE', 'YOUR MOVE');
   const mySeat = () => (mode === 'online' ? online?.seat : mode === 'cpu' ? 0 : state.turn);
   const over = () => state.winner !== null || state.draw;
   const myTurn = () => mode === 'local' || (mode === 'cpu' ? state.turn === 0 : online?.room?.status === 'playing' && online.seat === state.turn);
@@ -65,10 +65,10 @@
     if (lift) { ctx.beginPath(); ctx.ellipse(x + lift * .4, y + lift * .8, R, R * .9, 0, 0, Math.PI * 2); ctx.fillStyle = '#00000066'; ctx.fill(); }
     y -= lift;
     ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 14; ctx.fill(); ctx.shadowBlur = 0;
-    ctx.beginPath(); ctx.arc(x, y, R * .7, 0, Math.PI * 2); ctx.strokeStyle = '#0b151744'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, R * .7, 0, Math.PI * 2); ctx.strokeStyle = '#100b2e44'; ctx.lineWidth = 3; ctx.stroke();
     if (C.isKing(value)) {
       // a small crown
-      const s = R * .42; ctx.fillStyle = '#0b1517';
+      const s = R * .42; ctx.fillStyle = '#100b2e';
       ctx.beginPath(); ctx.moveTo(x - s, y + s * .55); ctx.lineTo(x - s, y - s * .45); ctx.lineTo(x - s * .5, y + s * .05); ctx.lineTo(x, y - s * .7); ctx.lineTo(x + s * .5, y + s * .05); ctx.lineTo(x + s, y - s * .45); ctx.lineTo(x + s, y + s * .55); ctx.closePath(); ctx.fill();
     } else { ctx.beginPath(); ctx.arc(x - R * .3, y - R * .3, R * .28, 0, Math.PI * 2); ctx.fillStyle = '#ffffff55'; ctx.fill(); }
     ctx.globalAlpha = 1;
@@ -77,19 +77,19 @@
   function ring(index, color, width = 3, inset = 4) { const { x, y } = point(index); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.strokeRect(x - CELL / 2 + inset, y - CELL / 2 + inset, CELL - inset * 2, CELL - inset * 2); }
 
   function draw() {
-    ctx.fillStyle = '#0b1517'; ctx.fillRect(0, 0, W, W);
-    for (let index = 0; index < C.SIZE; index += 1) if (C.isDark(index)) square(index, '#16343a');
+    ctx.fillStyle = '#100b2e'; ctx.fillRect(0, 0, W, W);
+    for (let index = 0; index < C.SIZE; index += 1) if (C.isDark(index)) square(index, '#2a2260');
     // the last move: where it came from and where it landed
-    if (state.last && !anim) [state.last.from, ...state.last.path].forEach((index) => square(index, '#1f4c50'));
+    if (state.last && !anim) [state.last.from, ...state.last.path].forEach((index) => square(index, '#3a3080'));
     const playable = canMove();
-    if (playable && !selected) for (const index of movable()) ring(index, '#cffb4b55', 2, 3);
+    if (playable && !selected) for (const index of movable()) ring(index, '#ffcf3355', 2, 3);
     if (playable && selected) {
-      ring(selected.from, '#f7faee', 3, 3);
-      selected.path.forEach((index) => square(index, '#2a6366'));
+      ring(selected.from, '#faf6ee', 3, 3);
+      selected.path.forEach((index) => square(index, '#4a3e99'));
       for (const [index, kind] of targets()) {
         const { x, y } = point(index);
         ctx.beginPath(); ctx.arc(x, y, kind === 'step' ? CELL * .14 : CELL * .1, 0, Math.PI * 2);
-        ctx.fillStyle = kind === 'step' ? '#f7faee' : '#f7faee66'; ctx.fill();
+        ctx.fillStyle = kind === 'step' ? '#faf6ee' : '#faf6ee66'; ctx.fill();
       }
     }
     for (let index = 0; index < C.SIZE; index += 1) {
@@ -104,8 +104,8 @@
       piece(at.x, at.y, value, 1, 6);
     }
     if (anim) piece(anim.x, anim.y, anim.value, 1, anim.lift);
-    if (cursorShown && playable) ring(cursor, '#f7faee', 2, 1);
-    ctx.strokeStyle = '#cffb4b'; ctx.lineWidth = 3; ctx.shadowColor = '#cffb4b'; ctx.shadowBlur = 10; ctx.strokeRect(1.5, 1.5, W - 3, W - 3); ctx.shadowBlur = 0;
+    if (cursorShown && playable) ring(cursor, '#faf6ee', 2, 1);
+    ctx.strokeStyle = '#ffcf33'; ctx.lineWidth = 3; ctx.shadowColor = '#ffcf33'; ctx.shadowBlur = 10; ctx.strokeRect(1.5, 1.5, W - 3, W - 3); ctx.shadowBlur = 0;
   }
 
   function render() {
@@ -426,7 +426,7 @@
     const seats = $('#ck-seats'); seats.replaceChildren();
     [[online.room.hostName, 0], [online.room.guestName, 1]].forEach(([name, seat]) => {
       const item = document.createElement('li'), who = document.createElement('b'), role = document.createElement('span');
-      who.textContent = name ? `${clean(name)} · ${(state.match || [0, 0])[seat]}` : 'OPEN SEAT'; who.style.color = name ? seat === 0 ? '#5f8d12' : '#d1336d' : '';
+      who.textContent = name ? `${clean(name)} · ${(state.match || [0, 0])[seat]}` : 'OPEN SEAT'; who.style.color = name ? seat === 0 ? '#9a6f00' : '#d13a2e' : '';
       role.textContent = [seat === online.seat ? 'YOU' : '', !over() && name && state.turn === seat && online.room.status !== 'waiting' ? 'TO MOVE' : ''].filter(Boolean).join(' · ') || (seat === 0 ? 'HOST' : 'GUEST');
       item.append(who, role); seats.append(item);
     });

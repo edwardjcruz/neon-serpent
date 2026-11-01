@@ -4,7 +4,7 @@
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const TARGET = 12, COLS = 12, PITCH = 46, CUBE = 40, ROW_HEIGHT = 36, BASE_Y = 548, OFFSET_X = 24;
-  const COLORS = ['#68d8ff', '#cffb4b', '#ff4f8c', '#ffe66d', '#c77dff'];
+  const COLORS = ['#3fd8d0', '#4fe08a', '#ff5a4d', '#ffcf33', '#a78bff'];
   let rows = [], moving, score = 0, best = Number(localStorage.neonTowerBest || 0), perfects = 0;
   let playing = false, qualified = false, frame = 0, lastTime = 0, flash = 0;
 
@@ -39,7 +39,7 @@
     };
   }
   function reset() {
-    rows = [{ col: 4, y: BASE_Y, cubes: 4, color: '#426066' }];
+    rows = [{ col: 4, y: BASE_Y, cubes: 4, color: '#544a86' }];
     score = 0; perfects = 0; qualified = false; flash = 0; newMovingRow(); updateStats(); draw();
   }
   function cameraOffset() { return Math.max(0, (height() - 11) * ROW_HEIGHT); }
@@ -54,14 +54,14 @@
     for (let cube = 0; cube < row.cubes; cube += 1) drawCube(row.col + cube, row.y, row.color);
   }
   function draw() {
-    ctx.fillStyle = '#142226'; ctx.fillRect(0, 0, 600, 600);
+    ctx.fillStyle = '#1b1442'; ctx.fillRect(0, 0, 600, 600);
     ctx.strokeStyle = '#ffffff0a';
     for (let n = 0; n <= 600; n += 30) { ctx.beginPath(); ctx.moveTo(n, 0); ctx.lineTo(n, 600); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, n); ctx.lineTo(600, n); ctx.stroke(); }
     const nextMilestone = height() < TARGET ? TARGET : (Math.floor(height() / 10) + 1) * 10;
-    ctx.font = '700 11px monospace'; ctx.textAlign = 'right'; ctx.fillStyle = qualified ? '#cffb4b' : '#cffb4b90';
+    ctx.font = '700 11px "JetBrains Mono", monospace'; ctx.textAlign = 'right'; ctx.fillStyle = qualified ? '#ffcf33' : '#ffcf3390';
     ctx.fillText(qualified ? `WIN SECURED · NEXT BONUS ROW ${nextMilestone}` : 'FIRST WIN · REACH ROW 12', 582, 24);
     rows.forEach(drawRow); if (moving) drawRow(moving);
-    if (flash > 0) { ctx.fillStyle = `rgba(207,251,75,${Math.min(.28, flash / 500)})`; ctx.fillRect(0, 0, 600, 600); }
+    if (flash > 0) { ctx.fillStyle = `rgba(255,207,51,${Math.min(.28, flash / 500)})`; ctx.fillRect(0, 0, 600, 600); }
   }
   function finish() {
     playing = false; cancelAnimationFrame(frame); moving = null;

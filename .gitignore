@@ -2,3 +2,8 @@
 node_modules/
 dist/
 amplify_outputs.json
+.amplify/
+.secrets/
+*.jks
+*.keystore
+keystore.properties
