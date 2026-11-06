@@ -29,11 +29,13 @@
 
   let current = null, pushed = false; // pushed: the open game has a browser history entry that Back can undo
 
-  const home = $('#home-tiles');
+  const home = $('#home-tiles'), leaveOut = window.neonLeaveOut || [];
+  $('.home-brand small').textContent = `${TILES.flatMap(([, tiles]) => tiles).filter(([game]) => !leaveOut.includes(game)).length} GAMES · NO SIGN-UP`;
   TILES.forEach(([group, tiles]) => {
     const heading = document.createElement('h2'), grid = document.createElement('div');
     heading.className = 'home-group'; heading.textContent = group; grid.className = 'home-grid';
     tiles.forEach(([game, name, icon, tag, color]) => {
+      if (leaveOut.includes(game)) return;
       const tile = document.createElement('button'), mark = document.createElement('b'), title = document.createElement('strong'), line = document.createElement('span');
       tile.className = 'home-tile'; tile.style.setProperty('--tile', color); mark.textContent = icon; mark.setAttribute('aria-hidden', 'true'); title.textContent = name; line.textContent = tag;
       tile.append(mark, title, line);

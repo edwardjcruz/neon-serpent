@@ -2,7 +2,7 @@
 // without backend settings it hides online play rather than showing screens that can't connect.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
-const { siteUrl } = JSON.parse(readFileSync('app.config.json', 'utf8'));
+const { siteUrl, leaveOut = [] } = JSON.parse(readFileSync('app.config.json', 'utf8'));
 let html = readFileSync('dist/index.html', 'utf8');
 const strip = (pattern, label) => { if (!pattern.test(html)) throw new Error(`Could not find ${label} to remove`); html = html.replace(pattern, ''); };
 strip(/ *<!-- Google Tag Manager -->[\s\S]*?<!-- End Google Tag Manager -->\n/, 'Tag Manager');
@@ -10,8 +10,11 @@ strip(/ *<script async src="https:\/\/www\.googletagmanager\.com\/gtag\/js[^\n]*
 strip(/ *<script>window\.dataLayer=[^\n]*\n/, 'gtag setup');
 strip(/ *<!-- Google Tag Manager \(noscript\) -->[\s\S]*?<!-- End Google Tag Manager \(noscript\) -->\n/, 'Tag Manager noscript');
 
+// Games left out of the app lose their tab and home tile; their code stays loaded so nothing else breaks.
+for (const game of leaveOut) strip(new RegExp(`<button class="arcade-tab" data-game="${game}">[^<]*</button>`), `${game} tab`);
+
 const online = existsSync('dist/amplify_outputs.json') && Boolean(siteUrl);
-const setup = `  <script>window.neonApp=true;${siteUrl ? `window.neonSiteUrl=${JSON.stringify(siteUrl)};` : ''}${online ? '' : "document.documentElement.classList.add('no-online');"}</script>\n`;
+const setup = `  <script>window.neonApp=true;window.neonLeaveOut=${JSON.stringify(leaveOut)};${siteUrl ? `window.neonSiteUrl=${JSON.stringify(siteUrl)};` : ''}${online ? '' : "document.documentElement.classList.add('no-online');"}</script>\n`;
 html = html.replace('  <link rel="stylesheet" href="styles.css">', `${setup}  <link rel="stylesheet" href="styles.css">`);
 writeFileSync('dist/index.html', html);
 if (/googletagmanager|dataLayer/.test(html)) throw new Error('Analytics still in the app build');

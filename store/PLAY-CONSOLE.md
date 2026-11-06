@@ -8,10 +8,10 @@ for what's declared. These answers assume online play is ON. If the build ships 
 **App name (30 max):** Neon Serpent: Arcade Games
 
 **Short description (80 max):**
-13 arcade and board games. Play the computer, a friend, or chase your high score.
+12 arcade and board games. Play the computer, a friend, or chase your high score.
 
 **Full description:**
-Neon Serpent is 13 fast, colorful games in one app, with no sign-up.
+Neon Serpent is 12 fast, colorful games in one app, with no sign-up.
 
 PLAY A FRIEND
 • Neon Cue: pool with a real pull-back shot
@@ -25,7 +25,6 @@ ARCADE
 • Neon Rally: first to seven against the computer
 • Neon Storm: dodge everything falling from the sky
 • Sky Serpent: one-tap flight through neon gates
-• Neon Drop: drop and clear rows of blocks
 • Neon Tower: stop each row dead on top of the last
 • Neon Mines: three sizes of minefield
 • Neon Smash: smash every brick
