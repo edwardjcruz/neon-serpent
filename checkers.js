@@ -292,7 +292,7 @@
   const failIf = (errors) => { if (errors?.length) throw new Error(errors.map((error) => error.message).join(' ')); };
   const expiry = () => Math.floor(Date.now() / 1000) + ROOM_TTL;
   const roomCode = () => Array.from(crypto.getRandomValues(new Uint8Array(5)), (byte) => CODE_CHARS[byte % CODE_CHARS.length]).join('');
-  function inviteLink(code) { const url = new URL(location.href); url.search = `?checkers=${code}`; url.hash = ''; return url.toString(); }
+  function inviteLink(code) { const url = new URL(window.neonSiteUrl || location.href); url.search = `?checkers=${code}`; url.hash = ''; return url.toString(); }
   function setConnection(text, live) { const badge = $('#ck-connection'); badge.textContent = `● ${text}`; badge.classList.toggle('offline', !live); }
   function opponent() { const room = online?.room; if (!room) return {}; return online.seat === 0 ? { id: room.guestId, name: room.guestName } : { id: room.hostId, name: room.hostName }; }
   function announceRival() { const rival = opponent(); if (rival.id && Rivals) showToast(Rivals.summary('checkers', rival.id, rival.name), true); }
@@ -344,7 +344,7 @@
     mode = 'online'; selected = null;
     online = { code: room.code, seat, seq: room.seq, room, sub: null, poll: 0, pending: null, sending: false, reactionAt: parse(room.reaction)?.at || 0, lastReaction: 0, invitee: null };
     $('#ck-overlay').dataset.intro = 'false';
-    history.replaceState(null, '', inviteLink(room.code));
+    if (!window.neonSiteUrl) history.replaceState(null, '', inviteLink(room.code));
     try { online.sub = rooms().onUpdate({ filter: { code: { eq: room.code } } }).subscribe({ next: handleRoom, error: () => setConnection('POLLING', false) }); setConnection('LIVE', true); }
     catch { setConnection('POLLING', false); }
     online.poll = setInterval(() => refreshRoom(), 4000);

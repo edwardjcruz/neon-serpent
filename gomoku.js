@@ -29,7 +29,7 @@
     if (mode === 'cpu') return ['YOU', `CPU · ${level.toUpperCase()}`];
     return ['PLAYER 1', 'PLAYER 2'];
   };
-  const say = (text) => text.replace(/PLAYER ([12])/g, (_, seat) => names()[seat - 1]);
+  const say = (text) => text.replace(/PLAYER ([12])/g, (_, seat) => names()[seat - 1]).replace('YOU WINS', 'YOU WIN').replace(/YOU TO (DROP|PLACE)/, 'YOUR MOVE');
   const mySeat = () => (mode === 'online' ? online?.seat : mode === 'cpu' ? 0 : state.turn);
   const over = () => state.winner !== null || state.draw;
   const myTurn = () => mode === 'local' || (mode === 'cpu' ? state.turn === 0 : online?.room?.status === 'playing' && online.seat === state.turn);
@@ -215,7 +215,7 @@
   const failIf = (errors) => { if (errors?.length) throw new Error(errors.map((error) => error.message).join(' ')); };
   const expiry = () => Math.floor(Date.now() / 1000) + ROOM_TTL;
   const roomCode = () => Array.from(crypto.getRandomValues(new Uint8Array(5)), (byte) => CODE_CHARS[byte % CODE_CHARS.length]).join('');
-  function inviteLink(code) { const url = new URL(location.href); url.search = `?gomoku=${code}`; url.hash = ''; return url.toString(); }
+  function inviteLink(code) { const url = new URL(window.neonSiteUrl || location.href); url.search = `?gomoku=${code}`; url.hash = ''; return url.toString(); }
   function setConnection(text, live) { const badge = $('#gm-connection'); badge.textContent = `● ${text}`; badge.classList.toggle('offline', !live); }
   function opponent() { const room = online?.room; if (!room) return {}; return online.seat === 0 ? { id: room.guestId, name: room.guestName } : { id: room.hostId, name: room.hostName }; }
   function announceRival() { const rival = opponent(); if (rival.id && Rivals) showToast(Rivals.summary('gomoku', rival.id, rival.name), true); }
@@ -266,7 +266,7 @@
     mode = 'online';
     online = { code: room.code, seat, seq: room.seq, room, sub: null, poll: 0, pending: null, sending: false, reactionAt: parse(room.reaction)?.at || 0, lastReaction: 0, invitee: null };
     $('#gm-overlay').dataset.intro = 'false';
-    history.replaceState(null, '', inviteLink(room.code));
+    if (!window.neonSiteUrl) history.replaceState(null, '', inviteLink(room.code));
     try { online.sub = rooms().onUpdate({ filter: { code: { eq: room.code } } }).subscribe({ next: handleRoom, error: () => setConnection('POLLING', false) }); setConnection('LIVE', true); }
     catch { setConnection('POLLING', false); }
     online.poll = setInterval(() => refreshRoom(), 4000);

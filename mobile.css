@@ -24,38 +24,52 @@ html.at-home .home-screen{display:block;min-height:100svh;padding:max(26px,env(s
 .home-tile span{align-self:start;margin-top:2px;font-size:11.5px;line-height:1.25;color:#a9a3cc}
 
 /* ---------- the bar above every game ---------- */
+.home-foot{margin:0;text-align:center}.home-foot a{display:inline-block;padding:12px;font:700 10px 'JetBrains Mono',monospace;letter-spacing:1.5px;color:#a9a3cc}
 html.phone:not(.at-home) .app-bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;min-height:calc(50px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 8px 0;background:#100b2e;color:#fbf7ec}
-.app-bar button{min-height:40px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:#fbf7ec;font:700 11px 'JetBrains Mono',monospace;letter-spacing:.5px;cursor:pointer;touch-action:manipulation}
+.app-bar button{min-height:38px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:#fbf7ec;font:700 11px 'JetBrains Mono',monospace;letter-spacing:.5px;cursor:pointer;touch-action:manipulation}
 .app-bar button:active{background:#2c2470}
 .app-bar #app-back{flex:none;color:#ffcf33}
-.app-bar span{flex:1;min-width:0;overflow:hidden;font:800 11px 'Unbounded','Figtree',sans-serif;white-space:nowrap;text-overflow:ellipsis}
-.app-bar #app-panel{flex:none;border:1px solid #3a3268}
+.app-bar span{flex:1;min-width:0;overflow:hidden;font:800 10px 'Unbounded','Figtree',sans-serif;white-space:nowrap;text-overflow:ellipsis}
+.app-bar #app-panel{flex:none;margin-right:var(--bar-right,0);border:1px solid #3a3268}
 .app-bar #app-panel[hidden]{display:none}
 
 /* ---------- full-screen play view ---------- */
 html.phone-play body{background:#100b2e}
 html.phone-play main{background:transparent}
-html.phone-play .app-bar span{visibility:hidden}
-html.phone-play .app-bar #app-panel{min-height:38px;margin-right:130px}
-html.phone-play .play-view{display:flex;flex-direction:column;min-height:calc(100svh - 50px - env(safe-area-inset-top));padding:0 0 max(12px,env(safe-area-inset-bottom));border:0;background:#100b2e;color:#fbf7ec}
-html.phone-play .play-view .logo,html.phone-play .play-view .legend,html.phone-play .play-view .seo-copy{display:none}
+html.phone-play .play-view{display:flex;flex-direction:column;gap:8px;min-height:calc(100svh - 50px - env(safe-area-inset-top));padding:8px 0 max(12px,env(safe-area-inset-bottom));border:0;background:#100b2e;color:#fbf7ec}
+html.phone-play .play-view .logo,html.phone-play .play-view>.legend,html.phone-play .play-view>.seo-copy,html.phone-play .play-view>.mine-help{display:none}
 /* the game's own help, sound and restart buttons sit in the app bar */
-html.phone-play .play-view>header{position:fixed;top:env(safe-area-inset-top);right:calc(8px + env(safe-area-inset-right));z-index:21;display:flex;align-items:center;height:50px}
-html.phone-play .play-view .pool-header-buttons button{width:38px;height:38px;border-color:#3a3268;color:#fbf7ec}
-html.phone-play .play-view .pool-toolbar{margin:0;padding:8px 12px 0;color:#a9a3cc}
-html.phone-play .play-view .pool-toolbar button{min-height:36px;padding:0 10px;border-color:#3a3268;background:#1b1442;color:#c9c5e0}
-html.phone-play .play-view .pool-toolbar button.active{border-color:#ffcf33;background:#ffcf33;color:#100b2e}
-html.phone-play .play-view .stats{margin:10px 12px;padding:8px 10px;border-color:#3a3268;background:#1b1442;color:#a9a3cc}
-html.phone-play .play-view .stats strong{color:#fbf7ec;font-size:13px!important}
-html.phone-play .play-view .ck-arena{flex:none;width:min(100%,max(280px,calc(100svh - 300px - env(safe-area-inset-top) - env(safe-area-inset-bottom))));max-width:none;margin-top:auto;box-shadow:none}
-html.phone-play .play-view .pool-status{margin:0 0 auto;padding:12px 14px 0;color:#fbf7ec;font-size:11px;line-height:1.4;text-align:center}
+html.phone-play body:not(.pool-focus) .play-view>header{position:fixed;top:env(safe-area-inset-top);right:calc(8px + env(safe-area-inset-right));z-index:21;display:flex;align-items:center;gap:6px;height:50px;margin:0;padding:0}
+html.phone-play .play-view>header button{width:38px;height:38px;padding:0;border:1px solid #3a3268;border-radius:50%;background:transparent;color:#fbf7ec;font-size:14px;display:grid;place-items:center}
+html.phone-play .play-view .pool-toolbar,html.phone-play .play-view .pong-toolbar,html.phone-play .play-view .mine-toolbar,html.phone-play .play-view .mine-stats{margin:0;padding:0 12px;color:#a9a3cc}
+html.phone-play .play-view .pool-toolbar button,html.phone-play .play-view .pong-toolbar button,html.phone-play .play-view .mine-toolbar button,html.phone-play .play-view .mine-stats button{min-height:36px;padding:0 10px;border-color:#3a3268;background:#1b1442;color:#c9c5e0}
+html.phone-play .play-view .pool-toolbar button.active,html.phone-play .play-view .pong-toolbar button.active,html.phone-play .play-view .mine-toolbar button.active,html.phone-play .play-view .mine-stats button[aria-pressed="true"]{border-color:#ffcf33;background:#ffcf33;color:#100b2e}
+html.phone-play .play-view .mine-stats{padding:8px 12px;border:0;background:#1b1442}html.phone-play .play-view .mine-stats b{color:#fbf7ec}
+html.phone-play body:not(.pool-focus) #shooter-game .play-arena{margin:auto}
+html.phone-play .play-view>.stack-controls button[data-stack-action="drop"]:not(:active){color:#ffcf33}
+html.phone-play .play-view>.stats{margin:0 12px;padding:8px 10px;border-color:#3a3268;background:#1b1442;color:#a9a3cc}
+html.phone-play .play-view>.stats strong{color:#fbf7ec;font-size:15px!important}
+html.phone-play body:not(.pool-focus) .play-view .play-arena{flex:none;width:var(--arena-w,100%);max-width:none;margin:auto auto 0;box-shadow:none}
+html.phone-play .play-view .pool-status{margin:0 0 auto;padding:4px 14px 0;color:#fbf7ec;font-size:11px;line-height:1.4;text-align:center}
 html.phone-play .play-view canvas{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* controls sit at the bottom, under the thumbs */
+html.phone-play .play-view>.touch-controls,html.phone-play .play-view>.stack-controls,html.phone-play .play-view>.storm-controls,html.phone-play .play-view>.pong-controls,html.phone-play .play-view>.pool-controls,html.phone-play .play-view>.flappy-boost,html.phone-play .play-view>.tower-stack-button{flex:none;width:auto;margin:auto 12px 0}
+html.phone-play .play-view>.touch-controls button{border-color:#3a3268;background:#1b1442;color:#fbf7ec}
+html.phone-play .play-view>.touch-controls button:active{background:#ffcf33;color:#100b2e}
+html.phone-play .play-view>.stack-controls button,html.phone-play .play-view>.storm-controls button,html.phone-play .play-view>.pong-controls button,html.phone-play .play-view>.pool-controls>button{box-shadow:none}
+html.phone-play .play-view>.stack-controls button:not(:active),html.phone-play .play-view>.storm-controls button:not(:active),html.phone-play .play-view>.pong-controls button:not(:active){border:1px solid #3a3268;background:#1b1442}
+html.phone-play .play-view .mine-board{margin:0 12px;max-width:calc(100% - 24px);box-shadow:none}
+html.phone-play .play-view .pool-power{border-color:#3a3268;background:#1b1442;color:#a9a3cc}
 
 /* ---------- rooms and records slide up from the bottom ---------- */
 html.phone-play aside{position:fixed;left:0;right:0;bottom:0;z-index:31;display:flex!important;min-height:0;max-height:88svh;overflow:auto;padding:12px 18px max(18px,env(safe-area-inset-bottom));border-radius:16px 16px 0 0;transform:translateY(102%);visibility:hidden;transition:transform .22s ease-out,visibility .22s}
 html.phone-play.sheet-open aside{transform:none;visibility:visible}
 html.phone-play .app-sheet-close{display:block;align-self:flex-end;flex:none;min-height:38px;margin-bottom:4px;padding:0 12px;border:1px solid #d9cfb8;border-radius:8px;background:transparent;color:#1b1442;font:700 11px 'JetBrains Mono',monospace;cursor:pointer}
 html.phone-play.sheet-open .app-scrim{position:fixed;inset:0;z-index:30;display:block;background:#08061ab3}
+
+/* ---------- app builds with no backend settings: single-player and pass & play only ---------- */
+html.no-online [data-ck-mode="online"],html.no-online [data-gm-mode="online"],html.no-online [data-lu-mode="online"],html.no-online [data-pool-mode="online"],html.no-online [data-ck-begin="online"],html.no-online [data-gm-begin="online"],html.no-online [data-lu-begin="online"],html.no-online [data-pool-begin="online"]{display:none!important}
+html.no-online aside .leader-head,html.no-online aside .pool-lobby,html.no-online aside .pool-rivals-box,html.no-online aside footer,html.no-online aside .submit,html.no-online aside .pool-notice{display:none!important}
 
 /* Cue's own full-screen view covers the app bar, so it has to clear the notch itself. */
 html.phone body.pool-focus #pool-game{padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom))}

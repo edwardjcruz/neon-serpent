@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && cp index.html styles.css arcade.css mobile.css game.js minesweeper.js breakout.js bubble-shooter.js flappy-serpent.js neon-stack.js neon-tower.js neon-storm.js neon-pong.js pool-engine.js pool-ai.js pool-sound.js rivals.js pool-ranking.js pool.js lineup-engine.js lineup.js gomoku-engine.js gomoku.js checkers-engine.js checkers.js analytics.js arcade-switcher.js mobile.js leaderboard.js robots.txt dist/ && if [ -f amplify_outputs.json ]; then cp amplify_outputs.json dist/; fi && ./node_modules/esbuild/bin/esbuild leaderboard.js --bundle --format=esm --target=es2022 --outfile=dist/leaderboard.js"
+    "build": "rm -rf dist && mkdir -p dist && cp -R fonts dist/ && cp privacy.html index.html styles.css arcade.css mobile.css game.js minesweeper.js breakout.js bubble-shooter.js flappy-serpent.js neon-stack.js neon-tower.js neon-storm.js neon-pong.js pool-engine.js pool-ai.js pool-sound.js rivals.js pool-ranking.js pool.js lineup-engine.js lineup.js gomoku-engine.js gomoku.js checkers-engine.js checkers.js analytics.js arcade-switcher.js mobile.js leaderboard.js robots.txt dist/ && if [ -f amplify_outputs.json ]; then cp amplify_outputs.json dist/; fi && ./node_modules/esbuild/bin/esbuild leaderboard.js --bundle --format=esm --target=es2022 --outfile=dist/leaderboard.js",
+    "build:app": "npm run build && node scripts/build-app.mjs && npx cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",

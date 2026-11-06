@@ -472,7 +472,7 @@
   const rooms = () => client()?.models?.PoolRoom;
   function setConnection(text, live) { const badge = $('#pool-connection'); badge.textContent = `● ${text}`; badge.classList.toggle('offline', !live); }
   function roomCode() { const bytes = crypto.getRandomValues(new Uint8Array(5)); return Array.from(bytes, (byte) => CODE_CHARS[byte % CODE_CHARS.length]).join(''); }
-  function inviteLink(code) { const url = new URL(location.href); url.search = `?room=${code}`; url.hash = ''; return url.toString(); }
+  function inviteLink(code) { const url = new URL(window.neonSiteUrl || location.href); url.search = `?room=${code}`; url.hash = ''; return url.toString(); }
   function expiry() { return Math.floor(Date.now() / 1000) + ROOM_TTL; }
   function failIf(errors) { if (errors?.length) throw new Error(errors.map((error) => error.message).join(' ')); }
 
@@ -530,7 +530,7 @@
     mode = 'online';
     online = { code: room.code, seat, seq: room.seq, room, sub: null, poll: 0, pending: null, sending: false, reactionAt: parse(room.reaction)?.at || 0, lastReaction: 0 };
     $('#pool-overlay').dataset.intro = 'false';
-    history.replaceState(null, '', inviteLink(room.code));
+    if (!window.neonSiteUrl) history.replaceState(null, '', inviteLink(room.code));
     try {
       online.sub = rooms().onUpdate({ filter: { code: { eq: room.code } } }).subscribe({ next: handleRoom, error: () => setConnection('POLLING', false) });
       setConnection('LIVE', true);

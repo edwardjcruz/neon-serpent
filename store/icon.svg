@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- Neon Serpent mark: a yellow S-shaped serpent with a coral eye. Keep the shape inside the central 66×66 so launchers can mask it. -->
+  <path d="M71 37c-3-8-10-12-18-12-10 0-17 6-17 14 0 18 37 12 37 30 0 8-8 14-18 14-9 0-16-4-19-12" fill="none" stroke="#ffcf33" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="71" cy="37" r="9" fill="#ffcf33"/>
+  <circle cx="73" cy="35" r="3.2" fill="#ff5a4d"/>
+</svg>

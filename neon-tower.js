@@ -72,6 +72,7 @@
   }
   function place() {
     if (!playing || !moving) return;
+    if (held) { held = false; return; }
     const previous = rows[rows.length - 1], snappedCol = Math.round(moving.col);
     const overlapStart = Math.max(snappedCol, previous.col), overlapEnd = Math.min(snappedCol + moving.cubes, previous.col + previous.cubes);
     const supportedCubes = overlapEnd - overlapStart;
@@ -86,8 +87,12 @@
     updateStats();
     newMovingRow();
   }
+  // Leaving the game (phone home screen, app in the background) freezes the run; the next tap picks it up.
+  let held = false;
+  (window.neonHold ||= {}).tower = () => { if (!playing || held) return; held = true; draw(); ctx.fillStyle = '#fbf7ec'; ctx.font = '700 22px "Figtree", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('TAP TO RESUME', canvas.width / 2, canvas.height / 2); };
   function loop(time) {
     if (!playing) return;
+    if (held) { lastTime = time; frame = requestAnimationFrame(loop); return; }
     const delta = Math.min(.035, (time - lastTime) / 1000 || 0); lastTime = time;
     moving.elapsed += delta;
     if (!moving.fakeoutDone && moving.elapsed >= moving.fakeoutAt) { moving.direction *= -1; moving.fakeoutDone = true; }
@@ -99,7 +104,7 @@
     flash = Math.max(0, flash - delta * 1000); draw(); frame = requestAnimationFrame(loop);
   }
   function start() {
-    cancelAnimationFrame(frame); reset(); playing = true; lastTime = performance.now(); $('#tower-overlay').hidden = true; $('#tower-submit').hidden = true;
+    cancelAnimationFrame(frame); reset(); playing = true; held = false; lastTime = performance.now(); $('#tower-overlay').hidden = true; $('#tower-submit').hidden = true;
     window.trackGameEvent?.('game_started', 'neon_tower'); frame = requestAnimationFrame(loop);
   }
   async function showLeaderboard() {

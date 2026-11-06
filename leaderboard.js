@@ -8,6 +8,13 @@ function cleanCallsign(value) {
   return String(value).trim().replace(/[^a-zA-Z0-9 _-]/g, '').slice(0, 16);
 }
 
+// Global boards show strangers' callsigns, so keep the worst of it off them. Rooms are private and only invited players see names.
+const BLOCKED = ['fuck', 'shit', 'cunt', 'bitch', 'nigg', 'fagg', 'whore', 'slut', 'rape', 'nazi', 'hitler', 'kike', 'chink', 'spic', 'retard', 'cock', 'dick', 'pussy', 'porn', 'penis', 'vagina'];
+function offensive(name) {
+  const flat = String(name).toLowerCase().replace(/0/g, 'o').replace(/[1!]/g, 'i').replace(/3/g, 'e').replace(/[4@]/g, 'a').replace(/[5$]/g, 's').replace(/7/g, 't').replace(/[^a-z]/g, '');
+  return BLOCKED.some((word) => flat.includes(word));
+}
+
 async function startLeaderboard() {
   const response = await fetch('./amplify_outputs.json');
   if (!response.ok) throw new Error('Leaderboard configuration is unavailable.');
@@ -26,7 +33,7 @@ async function startLeaderboard() {
     const seen = new Set();
     return data.filter((entry) => {
       const player = cleanCallsign(entry.callsign).replace(/\s+/g, ' ').toLocaleLowerCase();
-      if (!player || seen.has(player)) return false;
+      if (!player || seen.has(player) || offensive(player)) return false;
       seen.add(player);
       return true;
     }).slice(0, displayLimit);
@@ -35,6 +42,7 @@ async function startLeaderboard() {
   async function submit({ callsign, score, board = BOARD }) {
   const safeCallsign = cleanCallsign(callsign);
   if (!safeCallsign) throw new Error('Enter a callsign.');
+  if (offensive(safeCallsign)) throw new Error('Choose a different callsign.');
   if (!Number.isInteger(score) || score < 1 || score > 100000) throw new Error('Invalid score.');
   const { errors } = await client.models.Score.create(
     { board, callsign: safeCallsign, score },

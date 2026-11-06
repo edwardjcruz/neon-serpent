@@ -120,7 +120,7 @@
   async function showLeaderboard() {
     const list = $('#stack-leaders');
     if (!window.neonLeaderboard) { list.innerHTML = '<li class="empty">CONNECTING TO GLOBAL NETWORK…</li>'; return; }
-    try { const rows = await window.neonLeaderboard.list({ board: 'stack' }); list.innerHTML = rows.length ? rows.map((row) => `<li><b>${String(row.callsign).replace(/[^a-zA-Z0-9 _-]/g, '')}</b><b>${row.score}</b></li>`).join('') : '<li class="empty">NO STACK MASTERS YET. BE FIRST.</li>'; }
+    try { const rows = await window.neonLeaderboard.list({ board: 'stack' }); list.innerHTML = rows.length ? rows.map((row) => `<li><b>${String(row.callsign).replace(/[^a-zA-Z0-9 _-]/g, '')}</b><b>${row.score}</b></li>`).join('') : '<li class="empty">NO DROP MASTERS YET. BE FIRST.</li>'; }
     catch { list.innerHTML = '<li class="empty">LEADERBOARD TEMPORARILY OFFLINE.</li>'; }
   }
   $('#stack-start').addEventListener('click', start); $('#stack-pause').addEventListener('click', togglePause);

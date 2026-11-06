@@ -13,7 +13,7 @@
   function reset() { pilot = { x: 130, y: 300, velocity: 0, radius: 13 }; gates = []; score = 0; lastGate = 0; stats(); draw(); }
   function mobileMode() { return matchMedia('(max-width: 760px)').matches; }
   function addGate() { const mobile = mobileMode(), gap = Math.max(mobile ? 195 : 160, (mobile ? 245 : 215) - Math.floor(score / 50) * (mobile ? 6 : 8)), top = 65 + Math.random() * (600 - gap - 145); gates.push({ x: 640, top, gap, passed: false }); }
-  function boost() { if (!playing) return; pilot.velocity = mobileMode() ? -5.9 : -6.2; tone(440); }
+  function boost() { if (!playing) return; if (held) { held = false; lastGate += performance.now() - heldAt; return; } pilot.velocity = mobileMode() ? -5.9 : -6.2; tone(440); }
   function draw() {
     ctx.fillStyle = '#1b1442'; ctx.fillRect(0, 0, 600, 600);
     ctx.strokeStyle = '#ffffff0a'; for (let n = 0; n < 600; n += 24) { ctx.beginPath(); ctx.moveTo(n, 0); ctx.lineTo(n, 600); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, n); ctx.lineTo(600, n); ctx.stroke(); }
@@ -27,8 +27,12 @@
     $('#flappy-start').innerHTML = 'FLY AGAIN <b>→</b>'; $('#flappy-overlay').hidden = false; $('#flappy-submit').hidden = score < 1;
     window.trackGameEvent?.('game_finished', 'flappy_serpent', { outcome: 'lost', score, gates: score / 10 });
   }
+  // Leaving the game (phone home screen, app in the background) freezes the run; the next tap picks it up.
+  let held = false, heldAt = 0;
+  (window.neonHold ||= {}).flappy = () => { if (!playing || held) return; held = true; heldAt = performance.now(); draw(); ctx.fillStyle = '#fbf7ec'; ctx.font = '700 22px "Figtree", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('TAP TO RESUME', 300, 300); };
   function tick(time) {
     if (!playing) return;
+    if (held) { frame = requestAnimationFrame(tick); return; }
     const mobile = mobileMode();
     if (time - lastGate > Math.max(mobile ? 1600 : 1250, (mobile ? 2200 : 1750) - score * 2)) { addGate(); lastGate = time; }
     const speed = (mobile ? 2.6 : 2.75) + Math.floor(score / 50) * (mobile ? .3 : .32); pilot.velocity += mobile ? .285 : .3; pilot.y += pilot.velocity;
@@ -37,7 +41,7 @@
     const hit = pilot.y - pilot.radius < 0 || pilot.y + pilot.radius > 600 || gates.some((gate) => pilot.x + pilot.radius > gate.x && pilot.x - pilot.radius < gate.x + 62 && (pilot.y - pilot.radius < gate.top || pilot.y + pilot.radius > gate.top + gate.gap));
     if (hit) return crash(); draw(); frame = requestAnimationFrame(tick);
   }
-  function start() { reset(); playing = true; $('#flappy-submit').hidden = true; $('#flappy-overlay').hidden = true; lastGate = performance.now(); window.trackGameEvent?.('game_started', 'flappy_serpent'); frame = requestAnimationFrame(tick); }
+  function start() { reset(); playing = true; held = false; $('#flappy-submit').hidden = true; $('#flappy-overlay').hidden = true; lastGate = performance.now(); window.trackGameEvent?.('game_started', 'flappy_serpent'); frame = requestAnimationFrame(tick); }
   async function showLeaderboard() { const list = $('#flappy-leaders'); if (!window.neonLeaderboard) { list.innerHTML = '<li class="empty">CONNECTING TO GLOBAL NETWORK…</li>'; return; } try { const rows = await window.neonLeaderboard.list({ board: 'flappy' }); list.innerHTML = rows.length ? rows.map((row) => `<li><b>${String(row.callsign).replace(/[&<>'"]/g, '')}</b><b>${row.score}</b></li>`).join('') : '<li class="empty">NO SKY PILOTS YET. BE FIRST.</li>'; } catch { list.innerHTML = '<li class="empty">LEADERBOARD TEMPORARILY OFFLINE.</li>'; } }
   canvas.addEventListener('pointerdown', boost); $('#flappy-boost').onclick = boost; $('#flappy-start').onclick = start; $('#flappy-sound').onclick = () => { sound = !sound; $('#flappy-sound').textContent = sound ? '♪' : '×'; };
   addEventListener('keydown', (event) => { if (!$('#flappy-game').hidden && event.code === 'Space' && !event.target.matches('input,textarea')) { event.preventDefault(); boost(); } });
